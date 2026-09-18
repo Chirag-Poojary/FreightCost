@@ -1,0 +1,19 @@
+hub_id,city,state,latitude,longitude,hub_category
+HUB01,Mumbai,Maharashtra,19.076,72.8777,port
+HUB02,Pune,Maharashtra,18.5204,73.8567,manufacturing
+HUB03,Ahmedabad,Gujarat,23.0225,72.5714,manufacturing
+HUB04,Mundra,Gujarat,22.8395,69.7219,port
+HUB05,Delhi,Delhi,28.7041,77.1025,consumption
+HUB06,Gurugram,Haryana,28.4595,77.0266,manufacturing
+HUB07,Ludhiana,Punjab,30.901,75.8573,manufacturing
+HUB08,Jaipur,Rajasthan,26.9124,75.7873,distribution
+HUB09,Kanpur,Uttar Pradesh,26.4499,80.3319,manufacturing
+HUB10,Kolkata,West Bengal,22.5726,88.3639,port
+HUB11,Chennai,Tamil Nadu,13.0827,80.2707,port
+HUB12,Coimbatore,Tamil Nadu,11.0168,76.9558,manufacturing
+HUB13,Bengaluru,Karnataka,12.9716,77.5946,consumption
+HUB14,Hyderabad,Telangana,17.385,78.4867,consumption
+HUB15,Nagpur,Maharashtra,21.1458,79.0882,distribution
+HUB16,Indore,Madhya Pradesh,22.7196,75.8577,distribution
+HUB17,Visakhapatnam,Andhra Pradesh,17.6868,83.2185,port
+HUB18,Surat,Gujarat,21.1702,72.8311,manufacturing

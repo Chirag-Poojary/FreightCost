@@ -1,0 +1,122 @@
+{
+ "extractor": "rules",
+ "n": 2,
+ "per_field": {
+  "invoice_id": 1.0,
+  "vendor_id": 1.0,
+  "detention": 1.0,
+  "invoice_date": 1.0,
+  "toll": 1.0,
+  "truck_type": 1.0,
+  "freight_base": 1.0,
+  "order_id": 0.5,
+  "total": 0.5,
+  "destination": 0.5,
+  "actual_days": 0.5,
+  "origin": 0.5
+ },
+ "critical_mean": 0.7,
+ "all_critical_ok": 0.0,
+ "records": [
+  {
+   "image": "INV059900.png",
+   "layout": "layout_classic",
+   "predicted": {
+    "invoice_id": "INV059900",
+    "order_id": "ORD002451",
+    "vendor_id": "VEN017",
+    "invoice_date": "29-12-2025",
+    "truck_type": "10-wheeler",
+    "actual_days": "0.64",
+    "origin": "Jaipur",
+    "destination": "Ludhiana",
+    "freight_base": 12518.47,
+    "detention": 0.0,
+    "toll": 1035.12,
+    "total": 5539.59
+   },
+   "ground_truth": {
+    "invoice_id": "INV059900",
+    "order_id": "ORD024516",
+    "vendor_id": "VEN017",
+    "invoice_date": "29-12-2025",
+    "origin": "Jaipur",
+    "destination": "Ludhiana",
+    "truck_type": "10-wheeler",
+    "actual_days": "0.64",
+    "weight_kg": "9893",
+    "distance_km": "591.5",
+    "detention_days": "0.00",
+    "freight_base": 12518.47,
+    "detention": 0.0,
+    "toll": 1035.12,
+    "total": 13553.59,
+    "gstin": "12ABCDE7964F1Z5"
+   },
+   "correct": {
+    "invoice_id": true,
+    "order_id": false,
+    "vendor_id": true,
+    "total": false,
+    "actual_days": true,
+    "invoice_date": true,
+    "origin": true,
+    "destination": true,
+    "truck_type": true,
+    "freight_base": true,
+    "detention": true,
+    "toll": true
+   }
+  },
+  {
+   "image": "INV008647.png",
+   "layout": "layout_modern",
+   "predicted": {
+    "invoice_id": "INV008647",
+    "order_id": "ORD030920",
+    "vendor_id": "VEN011",
+    "invoice_date": "08-06-2023",
+    "truck_type": "6-wheeler",
+    "actual_days": null,
+    "origin": "Destination",
+    "destination": "Vehicle",
+    "freight_base": 20169.6,
+    "detention": 0.0,
+    "toll": 2266.25,
+    "total": 22435.85
+   },
+   "ground_truth": {
+    "invoice_id": "INV008647",
+    "order_id": "ORD030920",
+    "vendor_id": "VEN011",
+    "invoice_date": "08-06-2023",
+    "origin": "Surat",
+    "destination": "Delhi",
+    "truck_type": "6-wheeler",
+    "actual_days": "2.04",
+    "weight_kg": "5574",
+    "distance_km": "1295.0",
+    "detention_days": "0.00",
+    "freight_base": 20169.6,
+    "detention": 0.0,
+    "toll": 2266.25,
+    "total": 22435.85,
+    "gstin": "21ABCDE4896F1Z7"
+   },
+   "correct": {
+    "invoice_id": true,
+    "order_id": true,
+    "vendor_id": true,
+    "total": true,
+    "actual_days": false,
+    "invoice_date": true,
+    "origin": false,
+    "destination": false,
+    "truck_type": true,
+    "freight_base": true,
+    "detention": true,
+    "toll": true
+   }
+  }
+ ]
+}

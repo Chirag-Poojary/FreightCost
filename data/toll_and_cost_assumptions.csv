@@ -1,0 +1,4 @@
+truck_type,mileage_kmpl,toll_rate_per_km,driver_allowance_per_day,effective_from
+12-wheeler,4.0,1.75,1200,2023-01-01
+10-wheeler,4.6,1.55,1100,2023-01-01
+6-wheeler,6.5,1.2,900,2023-01-01

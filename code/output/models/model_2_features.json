@@ -1,0 +1,16 @@
+{
+  "features": [
+    "actual_billed_amount",
+    "model_a_predicted_cost",
+    "cost_mismatch",
+    "actual_days",
+    "true_delay_days",
+    "commercial_delay_days",
+    "adverse_weather_days",
+    "vendor_padding_ratio",
+    "vendor_historical_risk_score"
+  ],
+  "threshold": 0.5,
+  "target": "requires_manual_review",
+  "notes": "clean invoices first: dedup invoice_id, upper() vendor_id, drop actual_billed_amount<=0. anomaly_type is NEVER a feature."
+}

@@ -1,0 +1,40 @@
+{
+  "numeric": [
+    "distance_km",
+    "ideal_days",
+    "quoted_days",
+    "billable_weight_kg",
+    "expected_fuel_price",
+    "expected_weather_score"
+  ],
+  "product_categories": [
+    "Steel Coils",
+    "Automotive Spare Parts",
+    "Industrial Chemicals",
+    "Bulk Textiles",
+    "Electronics Components"
+  ],
+  "truck_types": [
+    "6-wheeler",
+    "10-wheeler",
+    "12-wheeler"
+  ],
+  "column_order": [
+    "distance_km",
+    "ideal_days",
+    "quoted_days",
+    "billable_weight_kg",
+    "expected_fuel_price",
+    "expected_weather_score",
+    "cat_Steel Coils",
+    "cat_Automotive Spare Parts",
+    "cat_Industrial Chemicals",
+    "cat_Bulk Textiles",
+    "cat_Electronics Components",
+    "truck_6-wheeler",
+    "truck_10-wheeler",
+    "truck_12-wheeler"
+  ],
+  "target": "base_freight_cost",
+  "notes": "one-hot product_category (cat_*) and truck_type (truck_*); truck_type = assign_truck_type(weight_kg); impute missing expected_weather_score with month median."
+}
