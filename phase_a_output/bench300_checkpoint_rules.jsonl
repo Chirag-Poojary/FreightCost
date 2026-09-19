@@ -1,0 +1,300 @@
+{"image": "INV059900.png", "passed": true, "order_id": "ORD002451", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV008647.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV018570.png", "passed": false, "reason": "missing_critical_field:vendor_id"}
+{"image": "INV022764.png", "passed": true, "order_id": "ORD012899", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV019088.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV003384.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV026630.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV036828.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV030378.png", "passed": true, "order_id": "ORD028839", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV033722.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV007254.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV051173.png", "passed": true, "order_id": "ORD017689", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV020695.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV009948.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV044596.png", "passed": true, "order_id": "ORD005203", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV011565.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV058452.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV030629.png", "passed": true, "order_id": "ORD001393", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV031725.png", "passed": true, "order_id": "ORD018114", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV017008.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV003723.png", "passed": false, "reason": "missing_critical_field:order_id,vendor_id,total,actual_days"}
+{"image": "INV017335.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV052095.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV019862.png", "passed": true, "order_id": "ORD016960", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV016195.png", "passed": true, "order_id": "ORD011143", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV047594.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV004024.png", "passed": true, "order_id": "ORD000855", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV006574.png", "passed": true, "order_id": "ORD022368", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV038953.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV025398.png", "passed": true, "order_id": "ORD000910", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV020527.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV040334.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV021002.png", "passed": true, "order_id": "ORD015245", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV058502.png", "passed": true, "order_id": "ORD025987", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV010641.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV034413.png", "passed": true, "order_id": "ORD014217", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV041466.png", "passed": true, "order_id": "ORD019985", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV024409.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV015468.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV054969.png", "passed": true, "order_id": "ORD010415", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV000399.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV033826.png", "passed": true, "order_id": "ORD005659", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV036307.png", "passed": true, "order_id": "ORD005596", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV058061.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV049792.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV057149.png", "passed": true, "order_id": "ORD038776", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV000026.png", "passed": true, "order_id": "ORD005489", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV041268.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV014351.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV003295.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV008116.png", "passed": true, "order_id": "ORD031161", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV011482.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV020305.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV034714.png", "passed": true, "order_id": "ORD041746", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV006810.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV024072.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV046878.png", "passed": true, "order_id": "ORD018296", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV028913.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV023605.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV038400.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV015132.png", "passed": true, "order_id": "ORD003738", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV026805.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV040304.png", "passed": true, "order_id": "ORD036350", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV028640.png", "passed": true, "order_id": "ORD018861", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV003554.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV019632.png", "passed": true, "order_id": "ORD020407", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV023038.png", "passed": true, "order_id": "ORD002957", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV019250.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV057893.png", "passed": true, "order_id": "ORD022440", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV050934.png", "passed": true, "order_id": "ORD023945", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV014644.png", "passed": true, "order_id": "ORD053280", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV057392.png", "passed": true, "order_id": "ORD055543", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV023192.png", "passed": true, "order_id": "ORD001584", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV016430.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV052051.png", "passed": true, "order_id": "ORD034095", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV042807.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV029420.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV016408.png", "passed": true, "order_id": "ORD045513", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV002626.png", "passed": true, "order_id": "ORD053702", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV014876.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV045085.png", "passed": true, "order_id": "ORD057981", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV044561.png", "passed": true, "order_id": "ORD031691", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV017381.png", "passed": true, "order_id": "ORD000806", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV031176.png", "passed": false, "reason": "missing_critical_field:order_id,vendor_id,total,actual_days"}
+{"image": "INV029806.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV019240.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV041820.png", "passed": true, "order_id": "ORD047539", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV034817.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV056681.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV041678.png", "passed": true, "order_id": "ORD058683", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV048974.png", "passed": true, "order_id": "ORD031683", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV007705.png", "passed": true, "order_id": "ORD005115", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV021317.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV037842.png", "passed": true, "order_id": "ORD047181", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV051052.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV048037.png", "passed": true, "order_id": "ORD024590", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV048678.png", "passed": true, "order_id": "ORD015796", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV025910.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV022504.png", "passed": false, "reason": "missing_critical_field:order_id,vendor_id,total,actual_days"}
+{"image": "INV054828.png", "passed": true, "order_id": "ORD036170", "predicted_flag": true, "true_flag": true, "anomaly_type": "toll_inflation"}
+{"image": "INV023294.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV019127.png", "passed": true, "order_id": "ORD059352", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV023000.png", "passed": true, "order_id": "ORD014590", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV028676.png", "passed": true, "order_id": "ORD043597", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV056465.png", "passed": true, "order_id": "ORD031525", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV032820.png", "passed": true, "order_id": "ORD046203", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV044195.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV057275.png", "passed": true, "order_id": "ORD055738", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV059413.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV022260.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV051770.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV039200.png", "passed": true, "order_id": "ORD003962", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV000504.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV052193.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV030350.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV031086.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV043194.png", "passed": true, "order_id": "ORD030373", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV026323.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV003632.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV012835.png", "passed": true, "order_id": "ORD054441", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV047795.png", "passed": true, "order_id": "ORD004190", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV013306.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV042747.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV021965.png", "passed": true, "order_id": "ORD001055", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV046882.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV016009.png", "passed": false, "reason": "missing_critical_field:order_id,vendor_id,total,actual_days"}
+{"image": "INV027028.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV058659.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV037327.png", "passed": true, "order_id": "ORD055258", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV039039.png", "passed": true, "order_id": "ORD051247", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV054071.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV011780.png", "passed": true, "order_id": "ORD016949", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV032508.png", "passed": true, "order_id": "ORD002950", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV031742.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV021723.png", "passed": true, "order_id": "ORD039364", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV033737.png", "passed": true, "order_id": "ORD013088", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV032415.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV002760.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV023873.png", "passed": true, "order_id": "ORD017568", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV007066.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV000186.png", "passed": true, "order_id": "ORD024789", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV002513.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV040491.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV012286.png", "passed": true, "order_id": "ORD028350", "predicted_flag": true, "true_flag": true, "anomaly_type": "weight_discrepancy"}
+{"image": "INV030888.png", "passed": true, "order_id": "ORD003067", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV003567.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV049647.png", "passed": true, "order_id": "ORD012988", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV050067.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV056526.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV007101.png", "passed": true, "order_id": "ORD051330", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV016894.png", "passed": true, "order_id": "ORD040084", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV054925.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV026991.png", "passed": true, "order_id": "ORD055034", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV021929.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV040978.png", "passed": true, "order_id": "ORD036220", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV047701.png", "passed": true, "order_id": "ORD005385", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV028359.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV043075.png", "passed": true, "order_id": "ORD036976", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV058449.png", "passed": true, "order_id": "ORD059470", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV024065.png", "passed": true, "order_id": "ORD038163", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV041662.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV019215.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV018847.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV030346.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV009440.png", "passed": true, "order_id": "ORD048194", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV058829.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV008639.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV053628.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV042970.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV009650.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV041729.png", "passed": false, "reason": "days_out_of_plausible_range"}
+{"image": "INV001142.png", "passed": true, "order_id": "ORD022522", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV038777.png", "passed": true, "order_id": "ORD029948", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV033587.png", "passed": true, "order_id": "ORD049347", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV022048.png", "passed": true, "order_id": "ORD041900", "predicted_flag": true, "true_flag": true, "anomaly_type": "detention_padding"}
+{"image": "INV022735.png", "passed": true, "order_id": "ORD015824", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV039535.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV007057.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV013015.png", "passed": true, "order_id": "ORD004485", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV016382.png", "passed": true, "order_id": "ORD017692", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV011816.png", "passed": true, "order_id": "ORD036175", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV023304.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV026920.png", "passed": true, "order_id": "ORD014045", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV017021.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV027531.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV013889.png", "passed": true, "order_id": "ORD019891", "predicted_flag": false, "true_flag": true, "anomaly_type": "weight_discrepancy"}
+{"image": "INV011702.png", "passed": true, "order_id": "ORD013014", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV011568.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV044831.png", "passed": true, "order_id": "ORD045515", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV028229.png", "passed": true, "order_id": "ORD001860", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV018805.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV040125.png", "passed": true, "order_id": "ORD023814", "predicted_flag": true, "true_flag": true, "anomaly_type": "toll_inflation"}
+{"image": "INV015914.png", "passed": true, "order_id": "ORD033488", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV035924.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV005690.png", "passed": true, "order_id": "ORD006441", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV013297.png", "passed": true, "order_id": "ORD052372", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV033243.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV051887.png", "passed": true, "order_id": "ORD016057", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV000295.png", "passed": true, "order_id": "ORD018173", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV053939.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV018394.png", "passed": true, "order_id": "ORD040190", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV005267.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV031043.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV004436.png", "passed": true, "order_id": "ORD024867", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV005987.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV009670.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV016764.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV033239.png", "passed": true, "order_id": "ORD042215", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV034479.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV032334.png", "passed": true, "order_id": "ORD025090", "predicted_flag": true, "true_flag": true, "anomaly_type": "toll_inflation"}
+{"image": "INV027916.png", "passed": true, "order_id": "ORD027211", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV011489.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV058915.png", "passed": true, "order_id": "ORD051346", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV038291.png", "passed": true, "order_id": "ORD054432", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV016150.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV036907.png", "passed": true, "order_id": "ORD000828", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV001252.png", "passed": true, "order_id": "ORD003643", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV045258.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV016810.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV022604.png", "passed": true, "order_id": "ORD049541", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV006294.png", "passed": true, "order_id": "ORD000701", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV011331.png", "passed": true, "order_id": "ORD034101", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV046849.png", "passed": true, "order_id": "ORD043592", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV055441.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV032652.png", "passed": false, "reason": "missing_critical_field:order_id,vendor_id,total"}
+{"image": "INV023637.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV051658.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV021911.png", "passed": true, "order_id": "ORD053268", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV027073.png", "passed": true, "order_id": "ORD002638", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV046258.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV054975.png", "passed": true, "order_id": "ORD009103", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV035164.png", "passed": true, "order_id": "ORD000730", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV039448.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV042874.png", "passed": true, "order_id": "ORD023761", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV040843.png", "passed": true, "order_id": "ORD006302", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV026278.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV033849.png", "passed": true, "order_id": "ORD037563", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV020239.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV003110.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV032962.png", "passed": true, "order_id": "ORD039177", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV032129.png", "passed": true, "order_id": "ORD053742", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV052971.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV055831.png", "passed": true, "order_id": "ORD012606", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV039679.png", "passed": true, "order_id": "ORD051132", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV025376.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV008946.png", "passed": true, "order_id": "ORD041248", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV040750.png", "passed": true, "order_id": "ORD047336", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV036124.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV003134.png", "passed": true, "order_id": "ORD004288", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV029750.png", "passed": true, "order_id": "ORD051472", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV033935.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV050864.png", "passed": true, "order_id": "ORD036989", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV002547.png", "passed": true, "order_id": "ORD009909", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV057958.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV017195.png", "passed": true, "order_id": "ORD015479", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV026803.png", "passed": true, "order_id": "ORD059390", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV034922.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV035526.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV050922.png", "passed": true, "order_id": "ORD040174", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV020712.png", "passed": true, "order_id": "ORD028039", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV040986.png", "passed": true, "order_id": "ORD039616", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV038417.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV017839.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV039221.png", "passed": true, "order_id": "ORD014461", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV017283.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV016777.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV020748.png", "passed": true, "order_id": "ORD001151", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV047871.png", "passed": true, "order_id": "ORD010891", "predicted_flag": false, "true_flag": true, "anomaly_type": "detention_padding"}
+{"image": "INV035496.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV058173.png", "passed": true, "order_id": "ORD036003", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV005997.png", "passed": false, "reason": "vendor_id_not_found"}
+{"image": "INV053700.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV056046.png", "passed": true, "order_id": "ORD043182", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV059734.png", "passed": true, "order_id": "ORD000063", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV046007.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV006948.png", "passed": true, "order_id": "ORD046942", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV057084.png", "passed": true, "order_id": "ORD049925", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV030636.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV044043.png", "passed": true, "order_id": "ORD000715", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV030560.png", "passed": true, "order_id": "ORD011637", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV049284.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV010851.png", "passed": true, "order_id": "ORD035483", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV034112.png", "passed": false, "reason": "arithmetic_mismatch"}
+{"image": "INV005211.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV016476.png", "passed": false, "reason": "missing_critical_field:order_id"}
+{"image": "INV029541.png", "passed": true, "order_id": "ORD022048", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV004518.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV002333.png", "passed": true, "order_id": "ORD054199", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV046976.png", "passed": true, "order_id": "ORD006288", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV040603.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV014523.png", "passed": true, "order_id": "ORD009687", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV049607.png", "passed": true, "order_id": "ORD002072", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV011969.png", "passed": false, "reason": "missing_critical_field:total,actual_days"}
+{"image": "INV041864.png", "passed": true, "order_id": "ORD029200", "predicted_flag": false, "true_flag": false, "anomaly_type": null}
+{"image": "INV009473.png", "passed": true, "order_id": "ORD001495", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV024490.png", "passed": false, "reason": "missing_critical_field:actual_days"}
+{"image": "INV002614.png", "passed": true, "order_id": "ORD029530", "predicted_flag": false, "true_flag": true, "anomaly_type": "weight_discrepancy"}
+{"image": "INV032805.png", "passed": true, "order_id": "ORD016781", "predicted_flag": true, "true_flag": false, "anomaly_type": null}
+{"image": "INV056065.png", "passed": false, "reason": "missing_critical_field:total"}
+{"image": "INV052333.png", "passed": true, "order_id": "ORD031747", "predicted_flag": true, "true_flag": false, "anomaly_type": null}

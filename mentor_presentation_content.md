@@ -151,10 +151,12 @@ A separate section at the end covers what to know but *not* put on slides.
 ## Slide 13 — Evaluation plan
 
 **On-slide content:**
-- OCR field-extraction accuracy (% fields correctly extracted vs ground truth)
+- **OCR extraction benchmark:** Rules (81.4%) vs Groq LLM (93.9% overall, 95.8% on multi-column layouts)
+- **Two-Number Confidence Gate (n=300):**
+  - Auto-processing fraction: 62.0% (186/300 passed); 38.0% quarantined to manual data entry queue
+  - Model 2 on auto-processed fraction: 89.2% accuracy, 100% recall (6/6 true fraud cases caught), 0 false alarms from OCR noise
 - Query-agent success rate on a held-out set of test questions
-- Existing Model 1 / Model 2 metrics as the baseline to preserve (MAE, MAPE, PR-AUC, recall)
-- Estimated manual-review time saved vs the current all-manual audit process
+- Existing Model 1 / Model 2 metrics as the baseline to preserve (MAE ₹510, 1.66% MAPE, 0.840 PR-AUC, 0.887 recall)
 
 **Suggested visual:** none — bullet list is fine here
 
@@ -203,7 +205,11 @@ A separate section at the end covers what to know but *not* put on slides.
 - LLM hallucination risk: contained by design — the LLM only writes/structures text and writes SQL queries; it never computes the actual numbers itself. Query answers come from real SQL execution against the real dataset; risk scores come from the trained models, not the LLM.
 - Cost: plan to use a free-tier LLM API (or a small local model) to keep this at zero cost for a student project — mention this proactively if asked how you'll afford API calls at scale.
 - Why not just use an off-the-shelf OCR SaaS (AWS Textract etc.): raw OCR is commodity technology — the contribution is connecting extraction to the fraud model, the explanation layer, and the incremental vendor-scoring loop, tailored to this domain's data and fraud patterns, not the OCR step itself.
-- Privacy: since invoice images are generated synthetically from your own synthetic data, there's no real personal/company data exposure currently — acknowledge that a real deployment would need proper data-handling agreements.
+**On the Confidence Gate and Two-Number Reporting (Crucial Defense):**
+- Why not report a single end-to-end number: Feeding un-validated OCR output into Model 2 causes mis-extracted amounts (e.g. ₹15,700 read as ₹15.7M due to comma misinterpretation) to generate confident false fraud accusations against honest carriers.
+- The 4-tier validation gate catches these early (missing critical fields, unmapped order/vendor IDs, line-item arithmetic drift, physical plausibility bounds).
+- In our n=300 benchmark, 186/300 passed the gate; on that auto-processed cohort, Model 2 achieved 89.2% accuracy and caught 100% (6/6) of true fraud cases. The 114 failing invoices are safely routed to human review rather than being scored on corrupted data.
+- Sample size defense: Why n=300? In an n=30 pilot, only 1 positive fraud case existed in the cohort; evaluating at n=300 provides multiple positive ground-truth cases, making the 100% recall metric statistically credible.
 
 **On production/drift monitoring**
 - How you'd actually detect drift: monitor rolling MAE of Model 1's predictions against actual billed amounts, and rolling PR-AUC of Model 2 on a recent window of invoices; alert when either degrades past a set threshold. You don't need this built for the presentation — just be able to describe the mechanism if asked.

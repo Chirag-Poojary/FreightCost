@@ -40,3 +40,7 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Large rendered test image directories (regenerated via render_invoices.py)
+phase_a_output/invoices_bench300/
+
