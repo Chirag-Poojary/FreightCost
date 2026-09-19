@@ -1,42 +1,27 @@
 """
-=================================================================
-TWO-NUMBER REPORT SUMMARY (n=300) -- rule-based extractor
-=================================================================
-Passed confidence gate : 186/300 (62.0%)
-Rejected (manual queue): 114/300 (38.0%)
-  - missing_critical_field           86
-  - days_out_of_plausible_range      11
-  - arithmetic_mismatch              9
-  - vendor_id_not_found              7
-  - amount_out_of_plausible_range    1
+PRIORITY 1 -- Confidence-gate + two-number benchmark at a real sample size.
 
-Cohort: 186, true fraud cases: 6
-Accuracy: 89.2%  Precision: 23.1%  Recall: 100.0%
-Confusion: TP=6 FP=20 TN=160 FN=0
+The repo's published two-number result (n=30, 24 auto-processed, 1 true
+fraud case in that cohort) is not statistically meaningful -- "100% recall"
+on one positive example proves almost nothing. This reruns the identical
+logic at n=300 against the actual trained models and actual ground-truth
+labels, so the headline numbers are defensible.
+
+Pipeline per invoice:
+  scanned image -> OCR -> rule-based extraction -> 4-TIER CONFIDENCE GATE
+        PASS -> join physicals from orders.csv (Model 1 was trained on
+                these; OCR never reads them off the document) -> recompute
+                cost_mismatch / delay features from the OCR-extracted
+                values (not the pipeline's internal ground truth) so an
+                OCR error genuinely propagates into a wrong score, exactly
+                as it would in production -> Model 1 -> Model 2 -> compare
+                to _ground_truth_audit.csv
+        FAIL -> Manual Data Entry Queue, tagged with the failing gate
+
+Extractor is rule-based here (no network dependency, reproducible without
+an API key). The LLM side needs a rotated GROQ_API_KEY -- see the note this
+script prints at the end.
 """
-# PRIORITY 1 -- Confidence-gate + two-number benchmark at a real sample size.
-#
-# The repo's published two-number result (n=30, 24 auto-processed, 1 true
-# fraud case in that cohort) is not statistically meaningful -- "100% recall"
-# on one positive example proves almost nothing. This reruns the identical
-# logic at n=300 against the actual trained models and actual ground-truth
-# labels, so the headline numbers are defensible.
-#
-# Pipeline per invoice:
-#   scanned image -> OCR -> rule-based extraction -> 4-TIER CONFIDENCE GATE
-#         PASS -> join physicals from orders.csv (Model 1 was trained on
-#                 these; OCR never reads them off the document) -> recompute
-#                 cost_mismatch / delay features from the OCR-extracted
-#                 values (not the pipeline's internal ground truth) so an
-#                 OCR error genuinely propagates into a wrong score, exactly
-#                 as it would in production -> Model 1 -> Model 2 -> compare
-#                 to _ground_truth_audit.csv
-#         FAIL -> Manual Data Entry Queue, tagged with the failing gate
-#
-# Extractor is rule-based here (no network dependency, reproducible without
-# an API key). The LLM side needs a rotated GROQ_API_KEY -- see the note this
-# script prints at the end.
-
 import argparse
 import json
 import os
@@ -165,13 +150,14 @@ class _M1Wrapper:
 def main(indir, n, data_dir, start, checkpoint, extractor, provider):
     global RUN_EXTRACTOR, RUN_PROVIDER
     RUN_EXTRACTOR, RUN_PROVIDER = extractor, provider
-    manifest_path = os.path.join(indir, "ground_truth.json")
+    manifest_path = os.path.join(indir, "ground_truth.json") if not indir.endswith(".json") else indir
     if not os.path.exists(manifest_path):
         raise FileNotFoundError(
             f"Manifest not found at {manifest_path}. Please render invoices first using:\n"
             f"python extraction_scripts/render_invoices.py --n {n} --outdir {indir} --scan"
         )
 
+    base_dir = os.path.dirname(manifest_path)
     with open(manifest_path) as f:
         manifest = json.load(f)[start:start + n]
     print(f"Processing invoices [{start}:{start+len(manifest)}] of this run "
@@ -188,7 +174,6 @@ def main(indir, n, data_dir, start, checkpoint, extractor, provider):
                 .set_index("order_id"))
     audit = pd.read_csv(os.path.join(data_dir, "_ground_truth_audit.csv")).set_index("order_id")
 
-    # Support models inside data_dir/models or data_dir directly
     m1_path = os.path.join(data_dir, "models", "model_1_freight_cost.joblib")
     if not os.path.exists(m1_path):
         m1_path = os.path.join(data_dir, "model_1_freight_cost.joblib")
@@ -221,7 +206,7 @@ def main(indir, n, data_dir, start, checkpoint, extractor, provider):
         for i, entry in enumerate(manifest, 1):
             if entry["image"] in done_images:
                 continue
-            img_path = os.path.join(indir, entry["image"])
+            img_path = os.path.join(base_dir, entry["image"])
             text = ocr(img_path)
             pred = (extract_rules(text) if extractor == "rules"
                     else extract_llm(text, provider=provider))

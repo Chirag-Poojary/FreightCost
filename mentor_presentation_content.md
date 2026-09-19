@@ -103,9 +103,9 @@ A separate section at the end covers what to know but *not* put on slides.
 ## Slide 9 — Proposed extension: GenAI layer
 
 **On-slide content:**
-- **Invoice OCR + LLM extraction:** scanned invoice image → structured fields → auto-feeds Model 2, no manual data entry
-- **Natural-language query agent:** ask questions like "which vendor has the highest risk this quarter?" — LLM writes and runs the query, answer is grounded in real data
-- **LLM-generated audit explanations:** flagged invoices get a plain-English rationale, not just a probability score
+- **Invoice OCR + LLM extraction (Phase A — Done):** scanned invoice image → structured fields → 4-tier Confidence Gate → auto-feeds Model 2
+- **Plain-English audit explanations (Phase C — Done):** flagged and approved invoices get a plain-English actionable note with strict zero-hallucination enforcement (Rules or LLM)
+- **Natural-language query agent (Phase B — Next):** ask questions like "which vendor has the highest risk this quarter?" — LLM writes and runs schema-constrained SQL, grounded in real data
 
 **Suggested visual:** the architecture diagram (already built) — invoice/question inputs → OCR / query agent → existing pipeline → risk+explanation / answer → chat-dashboard UI
 

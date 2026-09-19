@@ -274,7 +274,8 @@ FreightCost/
 │   ├── render_invoices.py                # 3-layout invoice renderer with scan noise
 │   ├── ocr_extract.py                    # Dual OCR extraction (Rules vs. Groq LLM)
 │   ├── invoice_audit_e2e.py              # End-to-end audit pipeline + Confidence Gate
-│   ├── benchmark_gate_n300.py            # Checkpointed n=300 two-number benchmark
+│   ├── confidence_gate_benchmark.py      # Checkpointed n=300 two-number benchmark runner
+│   ├── audit_explanation.py              # Zero-hallucination plain-English audit notes (Rules / LLM)
 │   ├── load_ppac_diesel.py               # PPAC fuel ingestion & VAT offsets
 │   ├── run_openmeteo.py                  # Open-Meteo historical weather fetcher
 │   └── run_ors.py                        # OpenRouteService live distance router
@@ -375,6 +376,16 @@ python extraction_scripts/benchmark_gate_n300.py --n 300 --indir phase_a_output/
 Simulate a brand-new, uncommitted shipment. The system automatically computes route distance via ORS/cache, fetches diesel price via PPAC/ARIMA forecast, queries weather via Open-Meteo/SARIMA forecast, and outputs a complete should-cost audit:
 ```bash
 python extraction_scripts/invoice_audit_e2e.py --image phase_a_output/invoices_scanned/INV000002.png --extractor llm --new-invoice
+```
+
+### 7. Generate Plain-English Audit Explanations (Phase C)
+Transform deterministic model outputs and gate verdicts into clear, actionable audit paragraphs with guaranteed **zero hallucination**:
+```bash
+# Template-based rules generator (zero API key, zero cost, deterministic)
+python extraction_scripts/audit_explanation.py --checkpoint phase_a_output/bench300_checkpoint_rules.jsonl --n 5
+
+# LLM-based narrative note (requires GROQ_API_KEY)
+python extraction_scripts/audit_explanation.py --checkpoint phase_a_output/bench300_checkpoint_rules.jsonl --n 5 --backend llm
 ```
 
 ---

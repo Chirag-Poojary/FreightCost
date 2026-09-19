@@ -1,0 +1,120 @@
+--- INV037951.png ---
+Verdict: APPROVED (risk probability 0.4%). Billed amount is Rs.1,708 above the Model 1 predicted fair cost of Rs.41,091 (billed: Rs.42,799).
+
+--- INV047202.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV009715.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.2,889 below the Model 1 predicted fair cost of Rs.36,526 (billed: Rs.33,638).
+
+--- INV019136.png ---
+Verdict: FLAGGED FOR AUDIT (risk probability 100.0%). Billed amount is Rs.23,559 above the Model 1 predicted fair cost of Rs.6,656 (billed: Rs.30,215). Transit ran 1.7 days beyond the carrier's own quoted time. This vendor's historical risk score is 0.10 (Laplace-smoothed, causal -- based only on their invoices prior to this one).
+
+--- INV036255.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV042596.png ---
+Verdict: APPROVED (risk probability 0.2%). Billed amount is Rs.379 above the Model 1 predicted fair cost of Rs.27,364 (billed: Rs.27,743). This vendor's historical risk score is 0.11 (Laplace-smoothed, causal -- based only on their invoices prior to this one).
+
+--- INV017283.png ---
+Invoice routed to manual data entry: missing critical field:vendor id. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV037592.png ---
+Invoice routed to manual data entry: arithmetic mismatch. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV043048.png ---
+Verdict: FLAGGED FOR AUDIT (risk probability 68.1%). Billed amount is Rs.7,988 above the Model 1 predicted fair cost of Rs.34,533 (billed: Rs.42,521).
+
+--- INV022361.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.183 below the Model 1 predicted fair cost of Rs.11,592 (billed: Rs.11,408).
+
+--- INV043666.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV023558.png ---
+Verdict: FLAGGED FOR AUDIT (risk probability 75.2%). Billed amount is Rs.4,435 above the Model 1 predicted fair cost of Rs.39,521 (billed: Rs.43,956). Transit ran 2.8 days beyond the carrier's own quoted time.
+
+--- INV009184.png ---
+Verdict: APPROVED (risk probability 4.7%). Billed amount is Rs.2,452 above the Model 1 predicted fair cost of Rs.29,105 (billed: Rs.31,557). This vendor's historical risk score is 0.12 (Laplace-smoothed, causal -- based only on their invoices prior to this one). 2 day(s) of adverse weather were recorded on this route, which can legitimately explain some delay.
+
+--- INV047286.png ---
+Verdict: APPROVED (risk probability 0.3%). Billed amount is Rs.74 below the Model 1 predicted fair cost of Rs.19,109 (billed: Rs.19,035). Transit ran 8.8 days beyond the carrier's own quoted time.
+
+--- INV053915.png ---
+Verdict: APPROVED (risk probability 0.3%). Billed amount is Rs.2 above the Model 1 predicted fair cost of Rs.49,475 (billed: Rs.49,477). Transit ran 0.9 days beyond the carrier's own quoted time. This vendor's historical risk score is 0.11 (Laplace-smoothed, causal -- based only on their invoices prior to this one).
+
+--- INV012097.png ---
+Verdict: FLAGGED FOR AUDIT (risk probability 99.9%). Billed amount is Rs.12,572 above the Model 1 predicted fair cost of Rs.31,247 (billed: Rs.43,819). Transit ran 1.8 days beyond the carrier's own quoted time.
+
+--- INV014411.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV010778.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.475 below the Model 1 predicted fair cost of Rs.13,353 (billed: Rs.12,877).
+
+--- INV026469.png ---
+Verdict: APPROVED (risk probability 0.3%). Billed amount is Rs.292 above the Model 1 predicted fair cost of Rs.27,941 (billed: Rs.28,232). Transit ran 1.4 days beyond the carrier's own quoted time.
+
+--- INV019231.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV006696.png ---
+Verdict: APPROVED (risk probability 0.1%). Billed amount is Rs.2,022 above the Model 1 predicted fair cost of Rs.65,519 (billed: Rs.67,541).
+
+--- INV001785.png ---
+Verdict: APPROVED (risk probability 0.3%). Billed amount is Rs.1,191 above the Model 1 predicted fair cost of Rs.40,487 (billed: Rs.41,678).
+
+--- INV051534.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV003906.png ---
+Invoice routed to manual data entry: days out of plausible range. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV048345.png ---
+Verdict: APPROVED (risk probability 0.1%). Billed amount is Rs.910 above the Model 1 predicted fair cost of Rs.37,911 (billed: Rs.38,821).
+
+--- INV010439.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV057644.png ---
+Verdict: APPROVED (risk probability 0.1%). Billed amount is Rs.90 above the Model 1 predicted fair cost of Rs.14,663 (billed: Rs.14,753).
+
+--- INV036693.png ---
+Verdict: APPROVED (risk probability 2.6%). Billed amount is Rs.1,894 above the Model 1 predicted fair cost of Rs.40,369 (billed: Rs.42,263). Transit ran 0.6 days beyond the carrier's own quoted time.
+
+--- INV026270.png ---
+Verdict: APPROVED (risk probability 10.8%). Billed amount is Rs.612 above the Model 1 predicted fair cost of Rs.33,298 (billed: Rs.33,910). Transit ran 9.9 days beyond the carrier's own quoted time.
+
+--- INV048301.png ---
+Invoice routed to manual data entry: arithmetic mismatch. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV058127.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.1,078 below the Model 1 predicted fair cost of Rs.59,498 (billed: Rs.58,420). 1 day(s) of adverse weather were recorded on this route, which can legitimately explain some delay.
+
+--- INV007211.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV044864.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.1,567 below the Model 1 predicted fair cost of Rs.56,148 (billed: Rs.54,581).
+
+--- INV049162.png ---
+Verdict: APPROVED (risk probability 0.1%). Billed amount is Rs.134 above the Model 1 predicted fair cost of Rs.11,695 (billed: Rs.11,829).
+
+--- INV025316.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV027964.png ---
+Invoice routed to manual data entry: days out of plausible range. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV033209.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.1,321 above the Model 1 predicted fair cost of Rs.57,735 (billed: Rs.59,056).
+
+--- INV035326.png ---
+Invoice routed to manual data entry: missing critical field:actual days. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV044869.png ---
+Invoice routed to manual data entry: missing critical field:order id. No fraud score was computed -- an unvalidated extraction was never passed to Model 2.
+
+--- INV047984.png ---
+Verdict: APPROVED (risk probability 0.0%). Billed amount is Rs.2,661 above the Model 1 predicted fair cost of Rs.52,870 (billed: Rs.55,531). 2 day(s) of adverse weather were recorded on this route, which can legitimately explain some delay.
+
