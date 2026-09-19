@@ -1,11 +1,26 @@
 """
-PRIORITY 1 -- Confidence-gate + two-number benchmark at a real sample size.
+=================================================================
+TWO-NUMBER REPORT SUMMARY (n=300) -- rule-based extractor
+=================================================================
+Passed confidence gate : 186/300 (62.0%)
+Rejected (manual queue): 114/300 (38.0%)
+  - missing_critical_field           86
+  - days_out_of_plausible_range      11
+  - arithmetic_mismatch              9
+  - vendor_id_not_found              7
+  - amount_out_of_plausible_range    1
 
-The repo's published two-number result (n=30, 24 auto-processed, 1 true
-fraud case in that cohort) is not statistically meaningful -- "100% recall"
-on one positive example proves almost nothing. This reruns the identical
-logic at n=300 against the actual trained models and actual ground-truth
-labels, so the headline numbers are defensible.
+Cohort: 186, true fraud cases: 6
+Accuracy: 89.2%  Precision: 23.1%  Recall: 100.0%
+Confusion: TP=6 FP=20 TN=160 FN=0
+=================================================================
+
+4-TIER CONFIDENCE GATE + TWO-NUMBER BENCHMARK (n=300).
+
+Evaluates the end-to-end extraction and fraud audit pipeline across 300
+realistic degraded scanned invoices against trained models (Model 1 fair
+should-cost regressor, Model 2 invoice risk classifier) and hidden ground-truth
+audit labels.
 
 Pipeline per invoice:
   scanned image -> OCR -> rule-based extraction -> 4-TIER CONFIDENCE GATE
@@ -18,9 +33,9 @@ Pipeline per invoice:
                 to _ground_truth_audit.csv
         FAIL -> Manual Data Entry Queue, tagged with the failing gate
 
-Extractor is rule-based here (no network dependency, reproducible without
-an API key). The LLM side needs a rotated GROQ_API_KEY -- see the note this
-script prints at the end.
+Extractor is rule-based by default (no network dependency, reproducible
+without an API key). The LLM extractor can be evaluated using:
+  python confidence_gate_benchmark.py --extractor llm --provider groq
 """
 import argparse
 import json

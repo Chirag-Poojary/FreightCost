@@ -14,13 +14,9 @@ Cohort: 186, true fraud cases: 6
 Accuracy: 89.2%  Precision: 23.1%  Recall: 100.0%
 Confusion: TP=6 FP=20 TN=160 FN=0
 """
-# PRIORITY 1 -- Confidence-gate + two-number benchmark at a real sample size.
-#
-# The repo's published two-number result (n=30, 24 auto-processed, 1 true
-# fraud case in that cohort) is not statistically meaningful -- "100% recall"
-# on one positive example proves almost nothing. This reruns the identical
-# logic at n=300 against the actual trained models and actual ground-truth
-# labels, so the headline numbers are defensible.
+# 4-TIER CONFIDENCE GATE + TWO-NUMBER BENCHMARK (n=300).
+# Evaluates the end-to-end extraction and fraud audit pipeline across 300
+# realistic degraded scanned invoices against trained models and ground-truth labels.
 #
 # Pipeline per invoice:
 #   scanned image -> OCR -> rule-based extraction -> 4-TIER CONFIDENCE GATE
