@@ -202,7 +202,7 @@ Trained on **60,000 synthetic shipments** calibrated to Indian freight economics
   - **OOF MAE**: **₹510.4**
   - **OOF MAPE**: **1.66%** (Average shipment cost: ₹31,238)
   - **$R^2$ Score**: > 0.99
-- **Core Features**: Route distance (km), ideal transit days, carrier quoted days, billable weight (kg), dynamic state diesel price, route weather risk score, truck type (32ft MXL, 24ft, 14ft), product category.
+- **Core Features**: Route distance (km), ideal transit days, carrier quoted days, billable weight (kg), dynamic state diesel price, route weather risk score, truck type (`6-wheeler`, `10-wheeler`, `12-wheeler`), product category.
 
 ### Model 2: Invoice Fraud Risk Flagger (XGBoost Classifier)
 - **Objective**: Flag suspicious invoices requiring manual audit investigation.
@@ -247,8 +247,9 @@ To ground the models in authentic market dynamics, modeled datasets were rebuilt
 ## Repository Structure
 
 ```
-d:/chirag/bundle/
+FreightCost/
 ├── .env.example                          # Environment template (placeholders for API keys)
+├── .gitignore                            # Excludes credentials, caches, archives, and binaries
 ├── README.md                             # Primary project documentation
 ├── README_Phase_2_A.md                   # Detailed Phase 2 A extraction guide
 ├── REPORT.md                             # Real-data rebuild & SARIMA validation report
@@ -273,6 +274,7 @@ d:/chirag/bundle/
 │   ├── render_invoices.py                # 3-layout invoice renderer with scan noise
 │   ├── ocr_extract.py                    # Dual OCR extraction (Rules vs. Groq LLM)
 │   ├── invoice_audit_e2e.py              # End-to-end audit pipeline + Confidence Gate
+│   ├── benchmark_gate_n300.py            # Checkpointed n=300 two-number benchmark
 │   ├── load_ppac_diesel.py               # PPAC fuel ingestion & VAT offsets
 │   ├── run_openmeteo.py                  # Open-Meteo historical weather fetcher
 │   └── run_ors.py                        # OpenRouteService live distance router
@@ -282,29 +284,50 @@ d:/chirag/bundle/
 │   ├── weather_cache.csv                 # 20,286 hub-days weather observations
 │   └── forecasts/                        # ARIMA/SARIMA forward predictions
 │
-├── phase_a_output/                       # Rendered images & benchmark JSONs
-│   ├── invoices_scanned/                 # Degraded test scans + ground_truth.json
-│   ├── benchmark_rules_30.json           # Rule-based benchmark results
-│   └── benchmark_llm_30.json             # Groq LLM benchmark results
-│
-└── tesseract_bin/                        # Portable Tesseract 5.4 binary & tessdata
+└── phase_a_output/                       # Benchmark logs & evaluation outputs
+    ├── invoices_scanned/                 # Sample degraded test scans + ground_truth.json
+    ├── benchmark_rules_30.json           # Rule-based baseline evaluation
+    ├── benchmark_llm_30.json             # Groq LLM benchmark results
+    └── bench300_checkpoint_rules.jsonl   # Checkpointed n=300 two-number audit log
 ```
+
+> **Clean Repository Architecture**: External binaries (e.g. `tesseract_bin/`), model archives (`*.zip`), temporary scratch files (`scratch/`), and bulky generated image directories (`invoices_bench300/`) are excluded from git via `.gitignore` to keep the repository lightweight and cross-platform.
 
 ---
 
 ## Quickstart & CLI Guide
 
 ### 1. Environment Setup
+
 ```bash
-# Clone repository and activate virtual environment
-cd d:/chirag/bundle
+# Clone repository and navigate to root
+git clone https://github.com/Chirag-Poojary/FreightCost.git
+cd FreightCost
+
+# Create and activate a Python virtual environment (Python 3.10+)
+# On Linux / macOS:
+python3 -m venv .venv
+source .venv/bin/activate
+
+# On Windows (PowerShell):
+python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+# On Windows (Command Prompt):
+# .venv\Scripts\activate.bat
 
 # Install dependencies
 pip install -r requirements.txt
 ```
 
-Copy the environment template and insert your credentials:
+#### System Prerequisites (Tesseract OCR Engine)
+The document intelligence pipeline uses Tesseract 5 for OCR text extraction:
+- **Ubuntu / Debian**: `sudo apt-get update && sudo apt-get install -y tesseract-ocr`
+- **macOS (Homebrew)**: `brew install tesseract`
+- **Windows**: Install via `winget install UB-Mannheim.TesseractOCR` (or unpack a portable Tesseract build into `tesseract_bin/` at the repository root).
+
+#### Configure Environment Variables
+Copy the environment template and insert your API credentials:
 ```bash
 cp .env.example .env
 ```

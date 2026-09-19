@@ -44,3 +44,13 @@ Thumbs.db
 # Large rendered test image directories (regenerated via render_invoices.py)
 phase_a_output/invoices_bench300/
 
+# External binary dependencies (install via system package manager or unpack locally)
+tesseract_bin/
+
+# Model and dataset archive packages (tracked models reside in code/output/models/)
+chi_freight_models.zip
+*.zip
+
+# Temporary scratch scripts
+scratch/
+
