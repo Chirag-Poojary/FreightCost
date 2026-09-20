@@ -1,0 +1,12 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+supabase
+pandas
+numpy
+joblib
+xgboost
+pytesseract
+Pillow
+requests
