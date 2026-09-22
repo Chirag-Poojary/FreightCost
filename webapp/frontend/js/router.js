@@ -27,12 +27,46 @@ const router = {
       });
     });
 
+    // Backend connection settings listener
+    this.initBackendSettings();
+
     // Check system health on startup
     this.checkHealth();
     setInterval(() => this.checkHealth(), 15000);
 
     // Initial navigation
     this.handleRoute();
+  },
+
+  initBackendSettings() {
+    const saveBtn = document.getElementById("save-backend-url-btn");
+    const input = document.getElementById("backend-url-input");
+    const banner = document.getElementById("backend-offline-banner");
+    const healthContainer = document.getElementById("health-status-container");
+
+    if (input) {
+      input.value = localStorage.getItem("FREIGHT_API_BASE") || "";
+    }
+
+    if (saveBtn && input) {
+      saveBtn.addEventListener("click", async () => {
+        const val = input.value.trim();
+        api.setBaseUrl(val);
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Connecting...";
+        await this.checkHealth();
+        saveBtn.disabled = false;
+        saveBtn.textContent = "Connect";
+      });
+    }
+
+    if (healthContainer && banner) {
+      healthContainer.addEventListener("click", () => {
+        banner.classList.toggle("hidden");
+        const currentCode = document.getElementById("current-api-base");
+        if (currentCode) currentCode.textContent = api.getBaseUrl();
+      });
+    }
   },
 
   handleRoute() {
@@ -69,20 +103,27 @@ const router = {
   async checkHealth() {
     const dot = document.getElementById("health-dot");
     const label = document.getElementById("health-label");
+    const banner = document.getElementById("backend-offline-banner");
+    const currentCode = document.getElementById("current-api-base");
     if (!dot || !label) return;
+
+    if (currentCode) currentCode.textContent = api.getBaseUrl();
 
     try {
       const res = await api.health();
       if (res.status === "ok") {
         dot.className = "status-dot online";
         label.textContent = res.database === "connected" ? "Engine Online" : "DB Disconnected";
+        if (banner) banner.classList.add("hidden");
       } else {
         dot.className = "status-dot offline";
         label.textContent = "Engine Degraded";
+        if (banner) banner.classList.remove("hidden");
       }
     } catch (_) {
       dot.className = "status-dot offline";
       label.textContent = "Backend Offline";
+      if (banner) banner.classList.remove("hidden");
     }
   }
 };

@@ -62,7 +62,7 @@
         <li><a href="#quote" class="nav-link" id="nav-link-quote">New Quote</a></li>
       </ul>
 
-      <div class="nav-status">
+      <div class="nav-status" id="health-status-container" style="cursor: pointer;" title="Click to view backend connection settings">
         <span class="status-dot online" id="health-dot"></span>
         <span id="health-label">Engine Online</span>
       </div>
@@ -71,6 +71,26 @@
 
   <!-- Main Content Container -->
   <main class="main-content">
+
+    <!-- Backend Connection / Offline Guidance Banner -->
+    <div id="backend-offline-banner" class="alert-banner alert-danger hidden" style="margin-bottom: calc(var(--space-unit) * 3); border-left: 4px solid var(--color-flagged);">
+      <div style="flex: 1;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+          <strong style="color: #fff;">Backend Service Offline / Unreachable</strong>
+          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-flagged-text); font-weight: 700; letter-spacing: 0.05em;">Action Required</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--color-text-dim); margin-bottom: 8px;">
+          The web client attempted to contact the FastAPI audit API at <code id="current-api-base" style="font-family: var(--font-mono); color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"></code> but received no response.
+        </p>
+        <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: 10px;">
+          To connect this Vercel deployment to your backend, enter your deployed backend URL (e.g. Render, Railway) below:
+        </p>
+        <div style="display: flex; gap: 8px; max-width: 540px;">
+          <input type="url" id="backend-url-input" class="form-input" placeholder="https://your-backend.onrender.com" style="padding: 6px 12px; font-size: 0.88rem;">
+          <button type="button" id="save-backend-url-btn" class="btn btn-primary btn-sm" style="white-space: nowrap;">Connect</button>
+        </div>
+      </div>
+    </div>
 
     <!-- ====================================================================
          PAGE 1: AUDIT (#audit-page)

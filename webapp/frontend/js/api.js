@@ -3,14 +3,30 @@
  * All HTTP communication with the FastAPI backend flows through this file.
  */
 
-// If served via FastAPI StaticFiles, relative origin works directly.
-// Otherwise fallback to local dev port 8000.
-const API_BASE = window.location.origin && window.location.origin.startsWith("http")
-  ? window.location.origin
-  : "http://localhost:8000";
+// Dynamic API base resolution
+function getApiBase() {
+  const custom = localStorage.getItem("FREIGHT_API_BASE");
+  if (custom && custom.trim().startsWith("http")) {
+    return custom.trim().replace(/\/+$/, "");
+  }
+  return window.location.origin && window.location.origin.startsWith("http")
+    ? window.location.origin
+    : "http://localhost:8000";
+}
+
+function setApiBase(url) {
+  if (url && url.trim().startsWith("http")) {
+    const clean = url.trim().replace(/\/+$/, "");
+    localStorage.setItem("FREIGHT_API_BASE", clean);
+  } else {
+    localStorage.removeItem("FREIGHT_API_BASE");
+  }
+  return getApiBase();
+}
 
 async function apiCall(path, options = {}) {
-  const url = `${API_BASE}${path}`;
+  const base = getApiBase();
+  const url = `${base}${path}`;
   try {
     const res = await fetch(url, options);
     if (!res.ok) {
@@ -67,4 +83,7 @@ const api = {
    * Liveness and database connectivity health check
    */
   health: () => apiCall("/api/health"),
+
+  getBaseUrl: () => getApiBase(),
+  setBaseUrl: (url) => setApiBase(url),
 };
