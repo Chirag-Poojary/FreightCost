@@ -13,6 +13,7 @@
   --color-border-glow: rgba(59, 130, 246, 0.35);
 
   --color-primary: #3b82f6;
+  --color-primary-text: #7cb3ff;
   --color-primary-hover: #2563eb;
   --color-primary-glow: rgba(59, 130, 246, 0.25);
   --color-primary-light: rgba(59, 130, 246, 0.12);
@@ -22,6 +23,7 @@
   --color-approved-border: rgba(47, 143, 78, 0.35);
 
   --color-flagged: #c0503b;
+  --color-flagged-text: #fca5a5;
   --color-flagged-bg: rgba(192, 80, 59, 0.14);
   --color-flagged-border: rgba(192, 80, 59, 0.35);
 
@@ -29,9 +31,13 @@
   --color-pending-bg: rgba(224, 168, 62, 0.14);
   --color-pending-border: rgba(224, 168, 62, 0.35);
 
+  --color-neutral: #d1d2dc;
+  --color-neutral-bg: rgba(154, 155, 168, 0.14);
+  --color-neutral-border: rgba(154, 155, 168, 0.35);
+
   --color-text: #e8e8ec;
   --color-text-dim: #9a9ba8;
-  --color-text-muted: #676978;
+  --color-text-muted: #8e90a0;
 
   --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -120,12 +126,12 @@ body {
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
-  background: var(--color-primary-light);
-  color: var(--color-primary);
+  background: rgba(44, 90, 160, 0.25);
+  color: var(--color-primary-text);
   padding: 2px 7px;
   border-radius: var(--radius-full);
   letter-spacing: 0.05em;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(124, 179, 255, 0.35);
 }
 
 .nav-links {
@@ -199,6 +205,11 @@ body {
 
 .page-section.hidden {
   display: none;
+}
+
+/* Generic Utility to guarantee hidden elements are not shown on load */
+.hidden {
+  display: none !important;
 }
 
 @keyframes fadeIn {
@@ -362,7 +373,7 @@ body {
 .dropzone-icon {
   font-size: 2.4rem;
   margin-bottom: calc(var(--space-unit) * 1);
-  color: var(--color-primary);
+  color: var(--color-primary-text);
 }
 
 .dropzone-text {
@@ -460,16 +471,25 @@ body {
   border: 1px solid var(--color-approved-border);
 }
 
+/* High-contrast solid badge with white text: passes WCAG AA (5.1:1 ratio) */
 .badge-flagged {
-  background: var(--color-flagged-bg);
-  color: #f87171;
-  border: 1px solid var(--color-flagged-border);
+  background: #b93826;
+  color: #ffffff;
+  border: 1px solid #d95540;
+  box-shadow: 0 0 10px rgba(185, 56, 38, 0.35);
 }
 
 .badge-pending {
   background: var(--color-pending-bg);
   color: #fbbf24;
   border: 1px solid var(--color-pending-border);
+}
+
+/* Neutral badge for pre-audit default state */
+.badge-neutral {
+  background: var(--color-neutral-bg);
+  color: var(--color-neutral);
+  border: 1px solid var(--color-neutral-border);
 }
 
 /* Stat Grid & Metric Cards */
@@ -504,9 +524,9 @@ body {
 }
 
 .stat-value.approved { color: #4ade80; }
-.stat-value.flagged { color: #f87171; }
+.stat-value.flagged { color: var(--color-flagged-text); }
 .stat-value.pending { color: #fbbf24; }
-.stat-value.primary { color: #60a5fa; }
+.stat-value.primary { color: var(--color-primary-text); }
 
 /* Progress / Meter Bar */
 .meter-container {
@@ -592,6 +612,11 @@ body {
 .explanation-box.pending {
   border-left-color: var(--color-pending);
   background: rgba(224, 168, 62, 0.06);
+}
+
+.explanation-box.neutral {
+  border-left-color: var(--color-neutral);
+  background: rgba(154, 155, 168, 0.06);
 }
 
 /* Rejection Breakdown Bar Chart */

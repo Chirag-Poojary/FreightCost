@@ -5,6 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FreightCost AI — Automated Invoice Audit & Risk Scoring</title>
   <meta name="description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta name="robots" content="index, follow">
+  <meta name="theme-color" content="#0f1117">
+  <link rel="canonical" href="https://freightcost-ai.vercel.app/">
+
+  <!-- Open Graph / Social Media Cards -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://freightcost-ai.vercel.app/">
+  <meta property="og:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
+  <meta property="og:description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta property="og:image" content="https://freightcost-ai.vercel.app/og-preview.png">
+  <meta property="og:site_name" content="FreightCost AI">
+
+  <!-- Twitter Cards -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
+  <meta name="twitter:description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta name="twitter:image" content="https://freightcost-ai.vercel.app/og-preview.png">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "FreightCost AI",
+    "url": "https://freightcost-ai.vercel.app/",
+    "description": "Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.",
+    "applicationCategory": "BusinessApplication",
+    "operatingSystem": "All",
+    "offers": {
+      "@type": "Offer",
+      "price": "0"
+    }
+  }
+  </script>
+
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -119,7 +154,7 @@
       <div id="audit-results-card" class="card hidden">
         <div class="card-title">
           <span>Audit Verdict & Scoring</span>
-          <span id="verdict-badge" class="badge badge-approved">APPROVED</span>
+          <span id="verdict-badge" class="badge badge-neutral">No invoice audited yet</span>
         </div>
 
         <!-- Gate Status / Rejection Box -->
@@ -130,19 +165,19 @@
           <div class="stats-grid-4">
             <div class="stat-card">
               <div class="stat-label">Billed Amount</div>
-              <div class="stat-value" id="stat-billed-amount">₹0.00</div>
+              <div class="stat-value" id="stat-billed-amount">—</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Predicted Fair Cost</div>
-              <div class="stat-value primary" id="stat-predicted-cost">₹0.00</div>
+              <div class="stat-value primary" id="stat-predicted-cost">—</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Cost Mismatch</div>
-              <div class="stat-value" id="stat-cost-mismatch">₹0.00</div>
+              <div class="stat-value" id="stat-cost-mismatch">—</div>
             </div>
             <div class="stat-card">
               <div class="stat-label">Risk Probability</div>
-              <div class="stat-value" id="stat-risk-proba">0.0%</div>
+              <div class="stat-value" id="stat-risk-proba">—</div>
               <div class="meter-container">
                 <div class="meter-track">
                   <div class="meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
@@ -153,8 +188,8 @@
         </div>
 
         <!-- Narrative Explanation -->
-        <div id="audit-explanation-box" class="explanation-box approved">
-          Awaiting analysis verdict...
+        <div id="audit-explanation-box" class="explanation-box neutral">
+          Upload an invoice image above to begin automated OCR extraction, referential validation, and risk scoring.
         </div>
 
         <!-- Extracted Fields Table -->
@@ -233,7 +268,7 @@
         </div>
 
         <p class="disclaimer-note">
-          * Figures reflect the last N audits recorded in <code>audit_log</code>. Confusion-matrix precision/recall are not shown here yet — <code>DashboardStats</code> doesn't currently return them; see §11 if you want to add that.
+          * Figures reflect aggregate telemetry from the most recent processed invoices recorded in the audit logs.
         </p>
       </div>
     </section>

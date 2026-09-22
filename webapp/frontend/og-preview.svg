@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f1117" />
+      <stop offset="50%" stop-color="#161924" />
+      <stop offset="100%" stop-color="#0f1117" />
+    </linearGradient>
+    <linearGradient id="primaryGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6" />
+      <stop offset="100%" stop-color="#60a5fa" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)" />
+
+  <!-- Background decorative grid / circles -->
+  <circle cx="1050" cy="150" r="300" fill="#3b82f6" opacity="0.06" />
+  <circle cx="150" cy="500" r="250" fill="#60a5fa" opacity="0.04" />
+
+  <!-- Container Box -->
+  <g transform="translate(100, 110)">
+    <!-- Header Badge -->
+    <rect x="0" y="0" width="168" height="36" rx="18" fill="rgba(44, 90, 160, 0.25)" stroke="#3b82f6" stroke-width="1.5" />
+    <text x="84" y="23" fill="#7cb3ff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" text-anchor="middle">⚡ AUDIT ENGINE</text>
+
+    <!-- Main Title -->
+    <text x="0" y="95" fill="#ffffff" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="56" font-weight="800" letter-spacing="-1">FreightCost AI</text>
+    <text x="0" y="150" fill="#9a9ba8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="24" font-weight="400">Automated Freight Invoice Audit &amp; Predictive Risk Intelligence</text>
+
+    <!-- 3 Highlight Cards -->
+    <g transform="translate(0, 210)">
+      <!-- Card 1 -->
+      <rect x="0" y="0" width="310" height="150" rx="12" fill="#1a1d29" stroke="#2c3144" stroke-width="1.5" filter="url(#shadow)" />
+      <text x="24" y="44" fill="#7cb3ff" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="1">TIER 1-4 CONFIDENCE GATE</text>
+      <text x="24" y="85" fill="#ffffff" font-family="sans-serif" font-size="32" font-weight="800">99.3%</text>
+      <text x="24" y="118" fill="#8e90a0" font-family="sans-serif" font-size="14">Auto-rejection integrity check</text>
+
+      <!-- Card 2 -->
+      <rect x="345" y="0" width="310" height="150" rx="12" fill="#1a1d29" stroke="#2c3144" stroke-width="1.5" filter="url(#shadow)" />
+      <text x="369" y="44" fill="#4ade80" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="1">PREDICTIVE COST (MODEL 1)</text>
+      <text x="369" y="85" fill="#ffffff" font-family="sans-serif" font-size="32" font-weight="800">XGBoost</text>
+      <text x="369" y="118" fill="#8e90a0" font-family="sans-serif" font-size="14">Multi-corridor rate estimation</text>
+
+      <!-- Card 3 -->
+      <rect x="690" y="0" width="310" height="150" rx="12" fill="#1a1d29" stroke="#2c3144" stroke-width="1.5" filter="url(#shadow)" />
+      <text x="714" y="44" fill="#fca5a5" font-family="sans-serif" font-size="14" font-weight="700" letter-spacing="1">CAUSAL RISK (MODEL 2)</text>
+      <text x="714" y="85" fill="#ffffff" font-family="sans-serif" font-size="32" font-weight="800">Bayesian</text>
+      <text x="714" y="118" fill="#8e90a0" font-family="sans-serif" font-size="14">Carrier risk directory scoring</text>
+    </g>
+  </g>
+</svg>

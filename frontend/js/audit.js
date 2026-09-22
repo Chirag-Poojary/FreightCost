@@ -37,6 +37,7 @@ const auditPage = {
     this.providerContainer = document.getElementById("llm-provider-container");
     this.demoBtn = document.getElementById("load-demo-btn");
 
+    this.resetVerdictState();
     this.bindEvents();
   },
 
@@ -109,6 +110,42 @@ const auditPage = {
     this.fileInput.value = "";
     this.filePreview.classList.add("hidden");
     this.auditBtn.disabled = true;
+    this.resetVerdictState();
+  },
+
+  resetVerdictState() {
+    const verdictBadge = document.getElementById("verdict-badge");
+    const explanationBox = document.getElementById("audit-explanation-box");
+    const statsContainer = document.getElementById("audit-stats-container");
+    const gateStatusBox = document.getElementById("gate-status-box");
+    const fieldsTableBody = document.getElementById("extracted-fields-tbody");
+
+    if (verdictBadge) {
+      verdictBadge.className = "badge badge-neutral";
+      verdictBadge.textContent = "No invoice audited yet";
+    }
+    if (explanationBox) {
+      explanationBox.className = "explanation-box neutral";
+      explanationBox.textContent = "Upload an invoice image above to begin automated OCR extraction, referential validation, and risk scoring.";
+    }
+    if (gateStatusBox) gateStatusBox.classList.add("hidden");
+    if (statsContainer) statsContainer.classList.remove("hidden");
+
+    const billedEl = document.getElementById("stat-billed-amount");
+    if (billedEl) billedEl.textContent = "—";
+    const predEl = document.getElementById("stat-predicted-cost");
+    if (predEl) predEl.textContent = "—";
+    const costMisEl = document.getElementById("stat-cost-mismatch");
+    if (costMisEl) costMisEl.textContent = "—";
+    const riskEl = document.getElementById("stat-risk-proba");
+    if (riskEl) riskEl.textContent = "—";
+    const meterFill = document.getElementById("risk-meter-fill");
+    if (meterFill) meterFill.style.width = "0%";
+    if (fieldsTableBody) fieldsTableBody.innerHTML = "";
+
+    if (this.resultsCard) {
+      this.resultsCard.classList.add("hidden");
+    }
   },
 
   async loadDemoInvoice() {
@@ -237,7 +274,7 @@ const auditPage = {
         const row = document.createElement("tr");
         const val = fields[k] !== null && fields[k] !== undefined ? fields[k] : "—";
         row.innerHTML = `
-          <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-primary);">${k}</td>
+          <td style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-primary-text);">${k}</td>
           <td style="font-weight: 500;">${val}</td>
         `;
         fieldsTableBody.appendChild(row);
