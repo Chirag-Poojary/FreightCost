@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FreightCost AI — Automated Invoice Audit & Risk Scoring</title>
+  <meta name="description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#audit" class="nav-brand">
+        <div class="brand-icon">⚡</div>
+        <div>
+          <div class="brand-title">FreightCost AI</div>
+        </div>
+        <span class="brand-badge">Audit Engine</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#audit" class="nav-link active" id="nav-link-audit">Audit</a></li>
+        <li><a href="#dashboard" class="nav-link" id="nav-link-dashboard">Dashboard</a></li>
+        <li><a href="#vendors" class="nav-link" id="nav-link-vendors">Vendors</a></li>
+        <li><a href="#quote" class="nav-link" id="nav-link-quote">New Quote</a></li>
+      </ul>
+
+      <div class="nav-status">
+        <span class="status-dot online" id="health-dot"></span>
+        <span id="health-label">Engine Online</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content Container -->
+  <main class="main-content">
+
+    <!-- ====================================================================
+         PAGE 1: AUDIT (#audit-page)
+         ==================================================================== -->
+    <section id="audit-page" class="page-section">
+      <header class="page-header">
+        <h1>Invoice Audit & Risk Assessment</h1>
+        <p>Upload a carrier invoice image for automated OCR text extraction, referential gate verification, predictive cost estimation, and causal fraud detection.</p>
+      </header>
+
+      <div id="audit-error-banner" class="alert-banner alert-danger hidden"></div>
+
+      <!-- Upload & Configuration Card -->
+      <div class="card">
+        <div class="card-title">
+          <span>Upload Carrier Invoice</span>
+          <button type="button" class="btn btn-secondary btn-sm" id="load-demo-btn" title="Use benchmark sample image">
+            Load Demo Sample
+          </button>
+        </div>
+
+        <!-- Drag & Drop Zone -->
+        <div class="dropzone" id="dropzone">
+          <input type="file" id="file-input" accept="image/png, image/jpeg, image/jpg" style="display: none;">
+          <div class="dropzone-icon">📄</div>
+          <div class="dropzone-text">Drop an invoice image here, or click to browse</div>
+          <div class="dropzone-subtext">Supported formats: PNG, JPG, JPEG (Standard invoice scans)</div>
+        </div>
+
+        <!-- Selected File Preview -->
+        <div id="file-preview" class="file-preview hidden">
+          <div class="file-preview-info">
+            <span style="font-size: 1.3rem;">🖼️</span>
+            <div>
+              <span id="file-name" style="font-weight: 600;">invoice.png</span>
+              <span id="file-size" style="color: var(--color-text-dim); margin-left: 6px;">(0 KB)</span>
+            </div>
+          </div>
+          <button type="button" class="file-remove-btn" id="file-remove-btn" title="Remove file">&times;</button>
+        </div>
+
+        <!-- Extractor Mode Configuration -->
+        <div class="form-group" style="margin-top: calc(var(--space-unit) * 2.5);">
+          <label class="form-label">Extraction Engine</label>
+          <div class="radio-group">
+            <label class="radio-card active">
+              <input type="radio" name="extractor" value="rules" checked>
+              <div>
+                <div style="font-weight: 600;">Rule-Based (Regex)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Fast, deterministic pattern matching</div>
+              </div>
+            </label>
+            <label class="radio-card">
+              <input type="radio" name="extractor" value="llm">
+              <div>
+                <div style="font-weight: 600;">LLM Extractor</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Groq / Cloud LPU fallback parser</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- LLM Provider Select (Conditional) -->
+        <div id="llm-provider-container" class="form-group hidden">
+          <label class="form-label" for="llm-provider">LLM Provider</label>
+          <select id="llm-provider" class="form-select">
+            <option value="groq" selected>Groq Cloud (Fast LPU)</option>
+            <option value="gemini">Google Gemini</option>
+            <option value="openrouter">OpenRouter</option>
+            <option value="cerebras">Cerebras</option>
+          </select>
+        </div>
+
+        <button type="button" id="audit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 1);" disabled>
+          <span id="audit-spinner" class="spinner hidden"></span>
+          <span id="audit-btn-text">Audit Invoice</span>
+        </button>
+      </div>
+
+      <!-- Audit Results Panel (Hidden initially) -->
+      <div id="audit-results-card" class="card hidden">
+        <div class="card-title">
+          <span>Audit Verdict & Scoring</span>
+          <span id="verdict-badge" class="badge badge-approved">APPROVED</span>
+        </div>
+
+        <!-- Gate Status / Rejection Box -->
+        <div id="gate-status-box" class="alert-banner alert-danger hidden"></div>
+
+        <!-- 4 Metric Cards (When Gate Passed) -->
+        <div id="audit-stats-container">
+          <div class="stats-grid-4">
+            <div class="stat-card">
+              <div class="stat-label">Billed Amount</div>
+              <div class="stat-value" id="stat-billed-amount">₹0.00</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Predicted Fair Cost</div>
+              <div class="stat-value primary" id="stat-predicted-cost">₹0.00</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Cost Mismatch</div>
+              <div class="stat-value" id="stat-cost-mismatch">₹0.00</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Risk Probability</div>
+              <div class="stat-value" id="stat-risk-proba">0.0%</div>
+              <div class="meter-container">
+                <div class="meter-track">
+                  <div class="meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Narrative Explanation -->
+        <div id="audit-explanation-box" class="explanation-box approved">
+          Awaiting analysis verdict...
+        </div>
+
+        <!-- Extracted Fields Table -->
+        <div style="margin-top: calc(var(--space-unit) * 3.5);">
+          <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: calc(var(--space-unit) * 1.5);">
+            OCR Extracted Field Metadata
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 40%;">Field Name</th>
+                  <th>Extracted Value</th>
+                </tr>
+              </thead>
+              <tbody id="extracted-fields-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PAGE 2: DASHBOARD (#dashboard-page)
+         ==================================================================== -->
+    <section id="dashboard-page" class="page-section hidden">
+      <header class="page-header">
+        <h1>Operational Audit Dashboard</h1>
+        <p>Continuous monitoring of automated invoice throughput, gate pass ratios, and anomaly rejection telemetry.</p>
+      </header>
+
+      <div id="dash-error-banner" class="alert-banner alert-danger hidden"></div>
+
+      <!-- Control Bar -->
+      <div class="card" style="padding: calc(var(--space-unit) * 2);">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: calc(var(--space-unit) * 2);">
+          <div style="display: flex; align-items: center; gap: calc(var(--space-unit) * 1.5);">
+            <label for="dash-n-input" style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-dim);">
+              Sample Window (Last N):
+            </label>
+            <input type="number" id="dash-n-input" class="form-input" value="300" min="10" max="5000" style="width: 110px; padding: 6px 10px;">
+          </div>
+          <button type="button" id="dash-refresh-btn" class="btn btn-primary btn-sm">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Stat Cards -->
+      <div class="stats-grid-4">
+        <div class="stat-card">
+          <div class="stat-label">Total Processed</div>
+          <div class="stat-value" id="dash-stat-total">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Auto-Processing Rate</div>
+          <div class="stat-value approved" id="dash-stat-rate">0.0%</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Gate Rejected</div>
+          <div class="stat-value pending" id="dash-stat-rejected">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Flagged Anomalies</div>
+          <div class="stat-value flagged" id="dash-stat-flagged">0</div>
+        </div>
+      </div>
+
+      <!-- Rejection Breakdown Card -->
+      <div class="card">
+        <div class="card-title">Confidence Gate Rejection Breakdown</div>
+        <div id="rejection-breakdown-container">
+          <div style="text-align: center; color: var(--color-text-dim); padding: 20px;">
+            Loading telemetry...
+          </div>
+        </div>
+
+        <p class="disclaimer-note">
+          * Figures reflect the last N audits recorded in <code>audit_log</code>. Confusion-matrix precision/recall are not shown here yet — <code>DashboardStats</code> doesn't currently return them; see §11 if you want to add that.
+        </p>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PAGE 3: VENDORS (#vendors-page)
+         ==================================================================== -->
+    <section id="vendors-page" class="page-section hidden">
+      <header class="page-header">
+        <h1>Vendor Risk Explorer</h1>
+        <p>Causal carrier risk directory computed from historical audit logs via Laplace-smoothed Bayesian priors.</p>
+      </header>
+
+      <div id="vendors-error-banner" class="alert-banner alert-danger hidden"></div>
+
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: calc(var(--space-unit) * 2); gap: calc(var(--space-unit) * 2);">
+          <input type="text" id="vendor-search-input" class="form-input" placeholder="Search carrier by name or ID (e.g. VEN001, Maruti)..." style="max-width: 420px;">
+          <span id="vendor-count-label" style="font-size: 0.85rem; color: var(--color-text-dim);">Showing 0 vendors</span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-sort="vendor_name" data-title="Carrier Name">Carrier Name</th>
+                <th data-sort="vendor_id" data-title="Vendor ID">Vendor ID</th>
+                <th data-sort="total_invoices" data-title="Total Audits" style="text-align: right;">Total Audits</th>
+                <th data-sort="flagged_invoices" data-title="Flagged" style="text-align: right;">Flagged</th>
+                <th data-sort="risk_score" data-title="Risk Score" style="text-align: right;">Risk Score ▼</th>
+              </tr>
+            </thead>
+            <tbody id="vendors-tbody">
+              <tr>
+                <td colspan="5" style="text-align: center; color: var(--color-text-dim); padding: 30px;">
+                  Loading carriers...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <p class="disclaimer-note">
+          * Risk score reflects causal Laplace smoothing: <code>(flagged + 2 &times; 0.06) / (total + 2)</code>. Vendors with 0 audits default to the empirical prior (6.0%).
+        </p>
+      </div>
+    </section>
+
+    <!-- ====================================================================
+         PAGE 4: NEW QUOTE (#quote-page)
+         ==================================================================== -->
+    <section id="quote-page" class="page-section hidden">
+      <header class="page-header">
+        <h1>Pre-Shipment Freight Estimator</h1>
+        <p>Calculate fair market baseline freight costs (Model 1) prior to shipment booking based on corridor, payload, and operational conditions.</p>
+      </header>
+
+      <div id="quote-error-banner" class="alert-banner alert-danger hidden"></div>
+
+      <div class="card">
+        <form id="quote-form">
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="quote-origin">Origin Hub</label>
+              <select id="quote-origin" class="form-select" required></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-dest">Destination Hub</label>
+              <select id="quote-dest" class="form-select" required></select>
+            </div>
+          </div>
+
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="quote-truck-type">Truck Type</label>
+              <select id="quote-truck-type" class="form-select" required>
+                <option value="6-wheeler">6-wheeler (Light / City Haul)</option>
+                <option value="10-wheeler" selected>10-wheeler (Medium Corridor)</option>
+                <option value="12-wheeler">12-wheeler (Heavy Long-Haul)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-category">Product Category</label>
+              <select id="quote-category" class="form-select" required>
+                <option value="Steel Coils">Steel Coils</option>
+                <option value="Automotive Spare Parts" selected>Automotive Spare Parts</option>
+                <option value="Industrial Chemicals">Industrial Chemicals</option>
+                <option value="Bulk Textiles">Bulk Textiles</option>
+                <option value="Electronics Components">Electronics Components</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label" for="quote-weight">Billable Weight (kg)</label>
+              <input type="number" id="quote-weight" class="form-input" value="12000" min="100" max="60000" step="100" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-distance">Distance (km)</label>
+              <input type="number" id="quote-distance" class="form-input" value="850" min="10" max="4000" step="10" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-fuel-price">Expected Fuel Price (₹/L)</label>
+              <input type="number" id="quote-fuel-price" class="form-input" value="94.5" min="50" max="150" step="0.1" required>
+            </div>
+          </div>
+
+          <div class="form-row-3">
+            <div class="form-group">
+              <label class="form-label" for="quote-ideal-days">Ideal Transit Days</label>
+              <input type="number" id="quote-ideal-days" class="form-input" value="2.5" min="0.5" max="30" step="0.1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-quoted-days">Quoted Transit Days</label>
+              <input type="number" id="quote-quoted-days" class="form-input" value="3.5" min="0.5" max="30" step="0.1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="quote-weather">Weather Friction Score (0-1)</label>
+              <input type="number" id="quote-weather" class="form-input" value="0.3" min="0" max="1" step="0.05" required>
+            </div>
+          </div>
+
+          <button type="submit" id="quote-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 1);">
+            <span id="quote-spinner" class="spinner hidden"></span>
+            <span id="quote-btn-text">Calculate Freight Estimate</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Quote Output Card -->
+      <div id="quote-result-card" class="card hidden">
+        <div style="text-align: center; padding: calc(var(--space-unit) * 2) 0;">
+          <div style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
+            Predicted Fair Market Cost
+          </div>
+          <div id="quote-cost-display" style="font-size: 2.8rem; font-weight: 800; color: #60a5fa; letter-spacing: -0.03em;">
+            ₹0.00
+          </div>
+          <p style="color: var(--color-text-dim); font-size: 0.88rem; margin-top: 10px;">
+            Calculated via Model 1 (XGBoost Regressor) trained on historical corridor fuel, weight, and vehicle attributes.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- JavaScript Modules -->
+  <script src="js/api.js"></script>
+  <script src="js/router.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/vendors.js"></script>
+  <script src="js/quote.js"></script>
+</body>
+</html>

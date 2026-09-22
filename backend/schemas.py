@@ -33,3 +33,21 @@ class DashboardStats(BaseModel):
     auto_processing_rate: float
     flagged_count: int
     rejection_breakdown: dict
+
+
+class QuoteRequest(BaseModel):
+    origin_hub_id: str
+    dest_hub_id: str
+    truck_type: str
+    product_category: str
+    billable_weight_kg: float
+    distance_km: float
+    ideal_days: float
+    quoted_days: float
+    expected_fuel_price: float
+    expected_weather_score: float
+
+
+class QuoteResponse(BaseModel):
+    predicted_cost: float
+

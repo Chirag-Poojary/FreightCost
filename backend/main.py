@@ -44,7 +44,7 @@ from ocr_extract import ocr, extract_rules, extract_llm          # existing Phas
 from audit_explanation import explain_rules, explain_llm         # existing Phase C
 from audit_core import confidence_gate, build_model2_features, score_model2, Model1
 from db import Db
-from schemas import AuditResult, DashboardStats, VendorRisk
+from schemas import AuditResult, DashboardStats, VendorRisk, QuoteRequest, QuoteResponse
 
 # Dynamically locate model artifacts directory
 MODEL_DIR = None
@@ -212,3 +212,31 @@ def dashboard(n: int = 300):
         "flagged_count": sum(1 for r in passed_rows if r["flagged"]),
         "rejection_breakdown": dict(breakdown),
     }
+
+
+@app.post("/api/quote", response_model=QuoteResponse)
+def quote(req: QuoteRequest):
+    if _m1 is None:
+        raise HTTPException(status_code=503, detail="Model 1 not loaded yet.")
+    predicted = _m1.predict(req.model_dump())
+    return {"predicted_cost": predicted}
+
+
+# Mount static files for the frontend if directory exists (mounted last so /api routes take precedence)
+from fastapi.staticfiles import StaticFiles
+
+# Mount sample benchmark images for demo invoice loading
+BENCH_DIR = os.path.abspath(os.path.join(_BUNDLE_DIR, "phase_a_output"))
+if os.path.isdir(BENCH_DIR):
+    app.mount("/phase_a_output", StaticFiles(directory=BENCH_DIR), name="phase_a_output")
+
+FRONTEND_DIR = os.path.abspath(os.path.join(_CURR_DIR, "..", "frontend"))
+if not os.path.isdir(FRONTEND_DIR):
+    FRONTEND_DIR = os.path.abspath(os.path.join(_CURR_DIR, "frontend"))
+if not os.path.isdir(FRONTEND_DIR):
+    FRONTEND_DIR = os.path.abspath(os.path.join(_BUNDLE_DIR, "webapp", "frontend"))
+
+if os.path.isdir(FRONTEND_DIR):
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
+
+
