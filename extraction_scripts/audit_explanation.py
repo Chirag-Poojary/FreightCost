@@ -48,9 +48,9 @@ def explain_rules(rec):
     diff_val = abs(mismatch)
     lines = [
         f"Verdict: {verdict} (risk probability {rec.get('proba', 0.0):.1%}).",
-        f"Billed amount is Rs.{diff_val:,.0f} "
-        f"{mismatch_dir} the Model 1 predicted fair cost of Rs.{f['model_a_predicted_cost']:,.0f} "
-        f"(billed: Rs.{f['actual_billed_amount']:,.0f}).",
+        f"Billed amount is ₹{diff_val:,.0f} "
+        f"{mismatch_dir} the Model 1 predicted fair cost of ₹{f['model_a_predicted_cost']:,.0f} "
+        f"(billed: ₹{f['actual_billed_amount']:,.0f}).",
     ]
     if f["commercial_delay_days"] > 0.5:
         lines.append(f"Transit ran {f['commercial_delay_days']:.1f} days beyond the "
@@ -72,9 +72,9 @@ number -- only use the ones given. Do not add a verdict different from the one g
 
 Verdict: {verdict}
 Risk probability: {proba:.1%}
-Billed amount: Rs.{billed:,.0f}
-Model-predicted fair cost: Rs.{predicted:,.0f}
-Cost mismatch (billed minus predicted): Rs.{mismatch:,.0f}
+Billed amount: ₹{billed:,.0f}
+Model-predicted fair cost: ₹{predicted:,.0f}
+Cost mismatch (billed minus predicted): ₹{mismatch:,.0f}
 Commercial delay (actual days beyond quoted): {commercial_delay:.2f} days
 True delay (actual days beyond physically ideal time): {true_delay:.2f} days
 Vendor historical risk score (0-1, causal/Laplace-smoothed): {vendor_risk:.3f}

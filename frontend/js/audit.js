@@ -15,8 +15,9 @@ const REASON_MAPPINGS = {
 };
 
 function formatCurrency(val) {
-  if (val === null || val === undefined || isNaN(val)) return "—";
+  if (val === null || val === undefined || isNaN(val)) return "-";
   return "₹" + Number(val).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+});
 }
 
 const auditPage = {

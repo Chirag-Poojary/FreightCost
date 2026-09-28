@@ -72,7 +72,7 @@ TARGET_FIELDS = [
 ]
 MODEL2_CRITICAL = ["invoice_id", "order_id", "vendor_id", "total", "actual_days"]
 
-AMOUNT_RE = r"[-+]?[\d,]+\.\d{2}"
+AMOUNT_RE = r"[-+]?[\d,]+(?:\.\d{1,2})?"
 
 
 def ocr(path):
@@ -155,40 +155,83 @@ def _value_near(text, labels, pattern=None):
 
 
 def extract_rules(text):
-    """Rule-based extraction: regex for coded IDs, label-anchored search for
-    the rest. Deliberately simple -- this is the baseline, not the ceiling."""
+    """Rule-based extraction: regex for coded IDs, label-anchored search,
+    multi-column layout anchors, and line-item arithmetic reconciliation."""
     out = {}
 
-    # Coded identifiers have rigid formats, so regex is both safe and precise.
-    # The character class is deliberately loose (digits OR the glyphs OCR
-    # confuses them with), then the tail is normalised back to digits.
-    for field, prefix, ndig in [("invoice_id", "INV", 6), ("order_id", "ORD", 6),
-                                ("vendor_id", "VEN", 3)]:
-        m = re.search(rf"{prefix}[\dOolISBZ]{{{ndig}}}", text)
-        out[field] = prefix + m.group(0)[len(prefix):].translate(_DIGIT_FIX) if m else None
+    # 1. Invoice ID (INV + 6 digits, robust to OCR glyph confusion)
+    m_inv = re.search(r"INV\s*([\dOolISBZ]{5,8})", text, re.I)
+    if m_inv:
+        d = re.sub(r"\D", "", m_inv.group(1).translate(_DIGIT_FIX))
+        out["invoice_id"] = f"INV{d[-6:]}" if len(d) >= 6 else None
+    else:
+        out["invoice_id"] = None
 
-    m = re.search(r"\b(\d{2}-\d{2}-\d{4})\b", text)
-    out["invoice_date"] = m.group(1) if m else None
+    # 2. Order ID (ORD + 6 digits, handles OCR D/O confusion)
+    m_ord = re.search(r"ORD\s*([\dOolISBZ]{5,8})", text, re.I)
+    if m_ord:
+        d = re.sub(r"\D", "", m_ord.group(1).translate(_DIGIT_FIX))
+        if len(d) >= 6:
+            out["order_id"] = f"ORD{d[-6:]}"
+        elif len(d) == 5:
+            out["order_id"] = f"ORD0{d}"
+        else:
+            out["order_id"] = None
+    else:
+        out["order_id"] = None
 
-    m = re.search(r"\b(6|10|12)\s*-?\s*wheeler\b", text, re.I)
-    out["truck_type"] = f"{m.group(1)}-wheeler" if m else None
+    # 3. Vendor ID (VEN + 3 digits, normalizes kerning and extra zeroes)
+    m_ven = re.search(r"VEN\s*([\dOolISBZ]{2,5})", text, re.I)
+    if m_ven:
+        d = re.sub(r"\D", "", m_ven.group(1).translate(_DIGIT_FIX))
+        out["vendor_id"] = f"VEN{int(d):03d}" if d else None
+    else:
+        out["vendor_id"] = None
 
-    out["actual_days"] = _value_near(
-        text, ["Transit Days", "DAYS IN TRANSIT", "TRANSIT DAYS"], r"[\d.]+")
-    out["origin"] = _value_near(text, ["Origin", "FROM"], r"[A-Za-z ]+")
-    out["destination"] = _value_near(text, ["Destination", "\nTO ", "TO "], r"[A-Za-z ]+")
+    # 4. Invoice Date
+    m_date = re.search(r"\b(\d{2}-\d{2}-\d{4})\b", text)
+    out["invoice_date"] = m_date.group(1) if m_date else None
 
+    # 5. Truck Type
+    m_truck = re.search(r"\b(6|10|12)\s*-?\s*wheeler\b", text, re.I)
+    out["truck_type"] = f"{m_truck.group(1)}-wheeler" if m_truck else None
+
+    # 6. Origin, Destination, Vehicle, Transit Days (Multi-column layout anchor fallback)
+    m_modern = re.search(
+        r"([A-Za-z]+)\s+([A-Za-z]+)\s+((?:6|10|12)\s*-?\s*wheeler)\s+([\d.]+)",
+        text, re.I)
+    if m_modern:
+        out["origin"] = m_modern.group(1).title()
+        out["destination"] = m_modern.group(2).title()
+        out["actual_days"] = m_modern.group(4)
+        if not out.get("truck_type"):
+            m_t = re.search(r"(6|10|12)", m_modern.group(3))
+            if m_t:
+                out["truck_type"] = f"{m_t.group(1)}-wheeler"
+    else:
+        out["actual_days"] = _value_near(
+            text, ["Transit Days", "DAYS IN TRANSIT", "TRANSIT DAYS"], r"[\d.]+")
+        out["origin"] = _value_near(text, ["Origin", "FROM"], r"[A-Za-z ]+")
+        out["destination"] = _value_near(text, ["Destination", "\nTO ", "TO "], r"[A-Za-z ]+")
+
+    # 7. Line Item Charges
     out["freight_base"] = _amount_near(text, ["Base Freight", "FREIGHT CHARGES", "Base freight"])
     out["detention"] = _amount_near(text, ["Detention"])
     out["toll"] = _amount_near(text, ["Toll", "FASTag"])
-    # `last=True`: "TOTAL" also matches inside "TOTAL PAYABLE"/"GRAND TOTAL"
-    # headers that can appear earlier; the real total is the final one.
-    out["total"] = _amount_near(text, ["TOTAL PAYABLE", "GRAND TOTAL", "TOTAL"], last=True)
+
+    # 8. Total Amount with Line-Item Reconciliation
+    tot = _amount_near(text, ["TOTAL PAYABLE", "GRAND TOTAL", "TOTAL"], last=True)
+    if out["freight_base"] is not None:
+        parts_sum = round(out["freight_base"] + (out["detention"] or 0.0) + (out["toll"] or 0.0), 2)
+        if tot is None or abs(tot - parts_sum) > max(2.0, parts_sum * 0.02):
+            tot = parts_sum
+    out["total"] = tot
 
     for k in ("origin", "destination"):
         if out.get(k):
             out[k] = out[k].strip().title()
     return out
+
 
 
 LLM_PROMPT = """You are extracting structured data from OCR text of an Indian \
