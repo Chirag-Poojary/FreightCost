@@ -3,7 +3,12 @@
   "model_1": {
     "holdout_mae": 456.92,
     "holdout_mape_pct": 1.671,
-    "n_features": 14
+    "n_features": 14,
+    "prediction_interval": {
+      "target_coverage": 0.8,
+      "empirical_coverage": 0.8705,
+      "average_interval_width_inr": 1852.28
+    }
   },
   "model_2": {
     "pr_auc": 0.815,

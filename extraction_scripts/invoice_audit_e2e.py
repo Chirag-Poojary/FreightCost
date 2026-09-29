@@ -13,7 +13,7 @@ Key Architectural Pillars:
      * Critical Field Completeness: order_id, vendor_id, total, actual_days must all be present.
      * Referential Integrity: order_id must exist in internal Order Master; vendor_id in Vendor Registry.
      * Line-Item Arithmetic Consistency: freight_base + detention + toll == total (within 2% tolerance).
-     * Physical & Commercial Plausibility: Rs 500 < total <= Rs 250,000 and 0.2 <= actual_days <= 30.
+     * Physical & Commercial Plausibility: ?500 < total <= ?250,000 and 0.2 <= actual_days <= 30.
    - If ANY check fails: the invoice is routed to MANUAL DATA ENTRY QUEUE with exact diagnosed reasons.
    - If ALL checks pass: the invoice is AUTO-PROCESSED through Model 1 & Model 2.
 
@@ -75,6 +75,10 @@ except Exception:
 # 1. LOAD MODELS & SCHEMAS
 # -------------------------------------------------------------------------
 M1 = joblib.load(os.path.join(MODELS_DIR, "model_1_freight_cost.joblib"))
+p10_path = os.path.join(MODELS_DIR, "model_1_freight_cost_p10.joblib")
+p90_path = os.path.join(MODELS_DIR, "model_1_freight_cost_p90.joblib")
+M1_P10 = joblib.load(p10_path) if os.path.exists(p10_path) else None
+M1_P90 = joblib.load(p90_path) if os.path.exists(p90_path) else None
 with open(os.path.join(MODELS_DIR, "model_1_features.json")) as f:
     M1_CONFIG = json.load(f)
 
@@ -123,7 +127,7 @@ def check_confidence_gate(extracted, orders_master=None, vendors_master=None, ne
     1. Critical Field Completeness: order_id, vendor_id, total, actual_days must be present.
     2. Referential Integrity: order_id must exist in internal Order Master (for known orders).
     3. Arithmetic Consistency: line items (freight_base + detention + toll) must sum to total within 2%.
-    4. Plausibility Bounds: total between Rs 500 and Rs 250,000; transit duration between 0.2 and 30 days.
+    4. Plausibility Bounds: total between ?500 and ?250,000; transit duration between 0.2 and 30 days.
 
     Returns:
         passed (bool): True if safe to auto-process; False if routed to manual entry.
@@ -158,7 +162,7 @@ def check_confidence_gate(extracted, orders_master=None, vendors_master=None, ne
             tot_val = float(tot)
             if abs(line_sum - tot_val) > max(2.0, tot_val * 0.02):
                 reasons.append(
-                    f"Arithmetic mismatch: Line items sum to Rs {line_sum:,.2f} != Total Rs {tot_val:,.2f}"
+                    f"Arithmetic mismatch: Line items sum to ?{line_sum:,.2f} != Total ?{tot_val:,.2f}"
                 )
         except Exception as e:
             reasons.append(f"Arithmetic parse error: {e}")
@@ -168,7 +172,7 @@ def check_confidence_gate(extracted, orders_master=None, vendors_master=None, ne
         try:
             val = float(tot)
             if val <= 500.0 or val > 250000.0:
-                reasons.append(f"Plausibility bounds violation: Billed amount Rs {val:,.2f} outside valid range [Rs 500 - 250,000]")
+                reasons.append(f"Plausibility bounds violation: Billed amount ?{val:,.2f} outside valid range [?500 - 250,000]")
         except (ValueError, TypeError):
             reasons.append(f"Billed total '{tot}' is non-numeric")
 
@@ -322,7 +326,28 @@ def predict_should_cost(distance_km, ideal_days, quoted_days, weight_kg,
 
     X = pd.DataFrame([row])[M1_CONFIG["column_order"]]
     should_cost = float(M1.predict(X)[0])
-    return should_cost, truck_type
+    p10 = float(M1_P10.predict(X)[0]) if M1_P10 is not None else should_cost * 0.95
+    p90 = float(M1_P90.predict(X)[0]) if M1_P90 is not None else should_cost * 1.05
+    lower = min(p10, p90, should_cost)
+    upper = max(p10, p90, should_cost)
+
+    import xgboost as xgb
+    dmat = xgb.DMatrix(X)
+    raw_booster = getattr(M1, "get_booster", lambda: M1)()
+    contribs = raw_booster.predict(dmat, pred_contribs=True)[0]
+    raw_dict = dict(zip(M1_CONFIG["column_order"], contribs[:-1]))
+    unified = {}
+    cat_sum = sum(v for k, v in raw_dict.items() if k.startswith("cat_"))
+    truck_sum = sum(v for k, v in raw_dict.items() if k.startswith("truck_"))
+    for k, v in raw_dict.items():
+        if not k.startswith("cat_") and not k.startswith("truck_"):
+            unified[k] = float(v)
+    if cat_sum: unified["product_category"] = float(cat_sum)
+    if truck_sum: unified["truck_type"] = float(truck_sum)
+    sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)
+    top_drivers = [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:3]]
+
+    return should_cost, lower, upper, truck_type, top_drivers
 
 
 # -------------------------------------------------------------------------
@@ -471,7 +496,7 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
 
         dest_state = hubs_df.loc[dest_hub, "state"]
         fuel_price, f_src = get_fuel_price(dest_state, inv_date)
-        source_trail["fuel"] = f"{f_src} (Rs {fuel_price:.2f}/L in {dest_state})"
+        source_trail["fuel"] = f"{f_src} (?{fuel_price:.2f}/L in {dest_state})"
 
         transit_d = float(actual_days)
         weather_score, adverse_weather, w_src = get_weather_severity(dest_hub, inv_date, transit_d)
@@ -480,7 +505,7 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
         gt_flag = None
 
     # Step 5: Model 1 Should-Cost Prediction
-    should_cost, truck_type = predict_should_cost(
+    should_cost, p10, p90, truck_type, top_drivers = predict_should_cost(
         distance_km=distance_km,
         ideal_days=ideal_days,
         quoted_days=quoted_days,
@@ -512,10 +537,18 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
     v_risk = features["vendor_historical_risk_score"]
 
     findings = []
-    if mismatch > should_cost * 0.12:
-        findings.append(f"Billed total is Rs {mismatch:+,.0f} (+{mismatch_pct:.1f}%) above Model 1 should-cost benchmark")
+    if billed > p90:
+        excess = billed - p90
+        findings.append(f"Billed total of ?{billed:,.0f} breaches upper uncertainty bound ?{p90:,.0f} by ?{excess:,.0f} (+{excess/p90:.1%}). Fair estimate is ?{should_cost:,.0f} (80% credible band: ?{p10:,.0f} ? ?{p90:,.0f})")
+    elif billed < p10:
+        findings.append(f"Billed total of ?{billed:,.0f} is below lower uncertainty bound ?{p10:,.0f} (fair estimate: ?{should_cost:,.0f})")
+    else:
+        findings.append(f"Billed total of ?{billed:,.0f} aligns within 80% credible band: ?{p10:,.0f} ? ?{p90:,.0f}")
+    if top_drivers:
+        d_str = ", ".join(f"{d['feature'].replace('_', ' ').title()} ({'+' if d['impact'] > 0 else ''}?{d['impact']:,.0f})" for d in top_drivers)
+        findings.append(f"Top cost drivers: {d_str}")
     elif mismatch < -should_cost * 0.15:
-        findings.append(f"Billed total is significantly lower than estimated cost (Rs {mismatch:+,.0f})")
+        findings.append(f"Billed total is significantly lower than estimated cost (?{mismatch:+,.0f})")
 
     if comm_delay >= 1.0 and adverse_weather == 0:
         findings.append(f"Detention claimed ({comm_delay:.1f} delay days) with NO adverse weather recorded on route")
@@ -708,7 +741,7 @@ if __name__ == "__main__":
 
                 print(f"[INVOICE] {d['invoice_id']} (Order: {d['order_id']} | Vendor: {d['vendor_id']})")
                 print(f"   Image Layout: {item['layout']} | Route: {c['origin_hub']} -> {c['dest_hub']} ({c['distance_km']} km)")
-                print(f"   Billed: Rs {d['actual_billed_amount']:,.0f} | Model 1 Should-Cost: Rs {m['model_1_fair_should_cost']:,.0f} (Var: Rs {m['cost_variance']:+,.0f}, {m['cost_variance_pct']:+.1f}%)")
+                print(f"   Billed: ?{d['actual_billed_amount']:,.0f} | Model 1 Should-Cost: ?{m['model_1_fair_should_cost']:,.0f} (Var: ?{m['cost_variance']:+,.0f}, {m['cost_variance_pct']:+.1f}%)")
                 gt_str = f" | Ground Truth: {m['ground_truth_flag']}" if m['ground_truth_flag'] is not None else ""
                 print(f"   Risk: {m['model_2_risk_probability']:.1%} -> {status_tag} {status}{gt_str}")
                 print(f"   Audit Rationale: {'; '.join(rep['audit_decision']['findings'])}\n")

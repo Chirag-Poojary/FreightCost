@@ -98,6 +98,14 @@ def make_reg(seed):
                         random_state=seed, n_jobs=-1)
 
 
+def make_quantile_reg(seed, alpha):
+    from xgboost import XGBRegressor
+    return XGBRegressor(objective="reg:quantileerror", quantile_alpha=alpha,
+                        n_estimators=400, max_depth=6, learning_rate=0.05,
+                        subsample=0.8, colsample_bytree=0.8,
+                        random_state=seed, n_jobs=-1)
+
+
 def make_clf(seed, spw):
     from xgboost import XGBClassifier
     return XGBClassifier(n_estimators=400, max_depth=5, learning_rate=0.05,
@@ -119,26 +127,56 @@ def main(out, seed):
     y = o["base_freight_cost"].to_numpy()
     Xtr, Xte, ytr, yte = train_test_split(X, y, test_size=0.2, random_state=seed)
     reg = make_reg(seed); reg.fit(Xtr, ytr)
+    reg_p10 = make_quantile_reg(seed, 0.10); reg_p10.fit(Xtr, ytr)
+    reg_p90 = make_quantile_reg(seed, 0.90); reg_p90.fit(Xtr, ytr)
+
     pred = reg.predict(Xte)
+    pred_p10 = reg_p10.predict(Xte)
+    pred_p90 = reg_p90.predict(Xte)
     m1_mae = float(mean_absolute_error(yte, pred))
     m1_mape = float(np.mean(np.abs(pred - yte) / np.clip(np.abs(yte), 1e-9, None)) * 100)
+    coverage = float(np.mean((yte >= pred_p10) & (yte <= pred_p90)))
+    mean_width = float(np.mean(pred_p90 - pred_p10))
+
     print(f"  holdout MAE=Rs {m1_mae:,.1f}  MAPE={m1_mape:.2f}%")
-    # refit on ALL rows for the deployed model
+    print(f"  holdout 80% interval coverage={coverage*100:.1f}%  mean width=Rs {mean_width:,.1f}")
+
+    # refit on ALL rows for the deployed models
     reg_full = make_reg(seed); reg_full.fit(X, y)
+    reg_p10_full = make_quantile_reg(seed, 0.10); reg_p10_full.fit(X, y)
+    reg_p90_full = make_quantile_reg(seed, 0.90); reg_p90_full.fit(X, y)
+
     joblib.dump(reg_full, f"{mdir}/model_1_freight_cost.joblib")
     reg_full.get_booster().save_model(f"{mdir}/model_1_freight_cost.json")
+
+    joblib.dump(reg_p10_full, f"{mdir}/model_1_freight_cost_p10.joblib")
+    reg_p10_full.get_booster().save_model(f"{mdir}/model_1_freight_cost_p10.json")
+
+    joblib.dump(reg_p90_full, f"{mdir}/model_1_freight_cost_p90.joblib")
+    reg_p90_full.get_booster().save_model(f"{mdir}/model_1_freight_cost_p90.json")
+
     json.dump({"numeric": M1_NUM,
                "product_categories": ref.PRODUCT_CATEGORIES,
                "truck_types": ["6-wheeler", "10-wheeler", "12-wheeler"],
                "column_order": col_order,
                "target": "base_freight_cost",
+               "prediction_interval": {
+                   "alphas": [0.10, 0.90],
+                   "p10_artifact": "model_1_freight_cost_p10.joblib",
+                   "p90_artifact": "model_1_freight_cost_p90.joblib"
+               },
                "notes": "one-hot product_category (cat_*) and truck_type "
                         "(truck_*); truck_type = assign_truck_type(weight_kg); "
                         "impute missing expected_weather_score with month median."},
               open(f"{mdir}/model_1_features.json", "w"), indent=2)
     meta["model_1"] = {"holdout_mae": round(m1_mae, 2),
                        "holdout_mape_pct": round(m1_mape, 3),
-                       "n_features": len(col_order)}
+                       "n_features": len(col_order),
+                       "prediction_interval": {
+                           "target_coverage": 0.80,
+                           "empirical_coverage": round(coverage, 4),
+                           "average_interval_width_inr": round(mean_width, 2)
+                       }}
 
     # ---------- MODEL 2 ----------
     print("=== Model 2: invoice risk classifier ===")
@@ -195,39 +233,10 @@ def main(out, seed):
 
 
 def _write_predict_example(mdir):
-    code = '''"""Minimal inference demo -- load the exported models and predict.
-Run:  python predict_example.py
-For a website, wrap this in a request handler (Flask/FastAPI) instead.
-"""
-import json, joblib, numpy as np, pandas as pd
+    code = '"""Minimal inference demo -- load the exported models and predict.\nRun:  python predict_example.py\nFor a website, wrap this in a request handler (Flask/FastAPI) instead.\n"""\nimport json, joblib, numpy as np, pandas as pd\nimport xgboost as xgb\nimport sys\nif hasattr(sys.stdout, "reconfigure"):\n    sys.stdout.reconfigure(encoding="utf-8")\n\nM1 = joblib.load("model_1_freight_cost.joblib")\nM1_P10 = joblib.load("model_1_freight_cost_p10.joblib")\nM1_P90 = joblib.load("model_1_freight_cost_p90.joblib")\nM1F = json.load(open("model_1_features.json"))\nM2 = joblib.load("model_2_invoice_risk.joblib")\nM2F = json.load(open("model_2_features.json"))\n\ndef _prepare_m1_df(distance_km, ideal_days, quoted_days, weight_kg,\n                    dimensional_weight_kg, expected_fuel_price,\n                    expected_weather_score, product_category):\n    truck = ("6-wheeler" if weight_kg <= 9000\n             else "10-wheeler" if weight_kg <= 16000 else "12-wheeler")\n    billable = max(weight_kg, dimensional_weight_kg)\n    row = {"distance_km": distance_km, "ideal_days": ideal_days,\n           "quoted_days": quoted_days, "billable_weight_kg": billable,\n           "expected_fuel_price": expected_fuel_price,\n           "expected_weather_score": expected_weather_score}\n    for c in M1F["product_categories"]:\n        row[f"cat_{c}"] = int(product_category == c)\n    for t in M1F["truck_types"]:\n        row[f"truck_{t}"] = int(truck == t)\n    return pd.DataFrame([row])[M1F["column_order"]]\n\ndef predict_freight_cost(distance_km, ideal_days, quoted_days, weight_kg,\n                         dimensional_weight_kg, expected_fuel_price,\n                         expected_weather_score, product_category):\n    X = _prepare_m1_df(distance_km, ideal_days, quoted_days, weight_kg,\n                       dimensional_weight_kg, expected_fuel_price,\n                       expected_weather_score, product_category)\n    point = float(M1.predict(X)[0])\n    p10 = float(M1_P10.predict(X)[0])\n    p90 = float(M1_P90.predict(X)[0])\n    lower = min(p10, p90, point)\n    upper = max(p10, p90, point)\n    return point, lower, upper\n\ndef explain_freight_cost(distance_km, ideal_days, quoted_days, weight_kg,\n                         dimensional_weight_kg, expected_fuel_price,\n                         expected_weather_score, product_category, top_k=3):\n    X = _prepare_m1_df(distance_km, ideal_days, quoted_days, weight_kg,\n                       dimensional_weight_kg, expected_fuel_price,\n                       expected_weather_score, product_category)\n    dmat = xgb.DMatrix(X)\n    booster = getattr(M1, "get_booster", lambda: M1)()\n    contribs = booster.predict(dmat, pred_contribs=True)[0]\n    cols = M1F["column_order"]\n    raw = dict(zip(cols, contribs[:-1]))\n    base_val = float(contribs[-1])\n    unified = {}\n    cat_sum = sum(v for k, v in raw.items() if k.startswith("cat_"))\n    truck_sum = sum(v for k, v in raw.items() if k.startswith("truck_"))\n    for k, v in raw.items():\n        if not k.startswith("cat_") and not k.startswith("truck_"):\n            unified[k] = float(v)\n    if cat_sum: unified["product_category"] = float(cat_sum)\n    if truck_sum: unified["truck_type"] = float(truck_sum)\n    sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)\n    return base_val, [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:top_k]]\n\ndef score_invoice_risk(**features):\n    X = pd.DataFrame([{f: features[f] for f in M2F["features"]}])\n    proba = float(M2.predict_proba(X)[0, 1])\n    return proba, int(proba >= M2F["threshold"])\n\nif __name__ == "__main__":\n    cost, p10, p90 = predict_freight_cost(1200, 3.1, 3.5, 8000, 6000, 91.5, 2, "Steel Coils")\n    base_val, drivers = explain_freight_cost(1200, 3.1, 3.5, 8000, 6000, 91.5, 2, "Steel Coils")\n    print(f"Predicted Should-Cost: ₹{cost:,.2f}")\n    print(f"80% Uncertainty Band:  ₹{p10:,.2f} – ₹{p90:,.2f}")\n    print(f"Base Expected Value:   ₹{base_val:,.2f}")\n    print("Top TreeSHAP Drivers:")\n    for d in drivers:\n        sign = "+" if d["impact"] > 0 else ""\n        print(f"  - {d[\'feature\']:<22} {sign}₹{d[\'impact\']:,.2f}")\n\n    proba, flag = score_invoice_risk(\n        actual_billed_amount=cost*1.15, model_a_predicted_cost=cost,\n        cost_mismatch=cost*0.15, actual_days=4.2, true_delay_days=1.1,\n        commercial_delay_days=0.7, adverse_weather_days=1,\n        vendor_padding_ratio=1.13, vendor_historical_risk_score=0.08)\n    print(f"Invoice Risk Probability: {proba:.1%} | Flag for Review: {bool(flag)}")\n'
+    with open(f"{mdir}/predict_example.py", "w", encoding="utf-8") as f:
+        f.write(code)
 
-M1 = joblib.load("model_1_freight_cost.joblib")
-M1F = json.load(open("model_1_features.json"))
-M2 = joblib.load("model_2_invoice_risk.joblib")
-M2F = json.load(open("model_2_features.json"))
-
-def predict_freight_cost(distance_km, ideal_days, quoted_days, weight_kg,
-                         dimensional_weight_kg, expected_fuel_price,
-                         expected_weather_score, product_category):
-    # truck_type from weight (same rule as the pipeline)
-    truck = ("6-wheeler" if weight_kg <= 9000
-             else "10-wheeler" if weight_kg <= 16000 else "12-wheeler")
-    billable = max(weight_kg, dimensional_weight_kg)
-    row = {"distance_km": distance_km, "ideal_days": ideal_days,
-           "quoted_days": quoted_days, "billable_weight_kg": billable,
-           "expected_fuel_price": expected_fuel_price,
-           "expected_weather_score": expected_weather_score}
-    for c in M1F["product_categories"]:
-        row[f"cat_{c}"] = int(product_category == c)
-    for t in M1F["truck_types"]:
-        row[f"truck_{t}"] = int(truck == t)
-    X = pd.DataFrame([row])[M1F["column_order"]]
-    return float(M1.predict(X)[0])
-
-def score_invoice_risk(**features):
-    X = pd.DataFrame([{f: features[f] for f in M2F["features"]}])
-    proba = float(M2.predict_proba(X)[0, 1])
-    return proba, int(proba >= M2F["threshold"])
 
 if __name__ == "__main__":
     cost = predict_freight_cost(1200, 3.1, 3.5, 8000, 6000, 91.5, 2,

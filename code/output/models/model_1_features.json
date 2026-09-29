@@ -36,5 +36,13 @@
     "truck_12-wheeler"
   ],
   "target": "base_freight_cost",
+  "prediction_interval": {
+    "alphas": [
+      0.1,
+      0.9
+    ],
+    "p10_artifact": "model_1_freight_cost_p10.joblib",
+    "p90_artifact": "model_1_freight_cost_p90.joblib"
+  },
   "notes": "one-hot product_category (cat_*) and truck_type (truck_*); truck_type = assign_truck_type(weight_kg); impute missing expected_weather_score with month median."
 }

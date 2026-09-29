@@ -93,9 +93,13 @@ def load_models():
     m2_path = os.path.join(MODEL_DIR, "model_2_invoice_risk.joblib")
 
     booster = joblib.load(m1_path)
+    p10_path = os.path.join(MODEL_DIR, "model_1_freight_cost_p10.joblib")
+    p90_path = os.path.join(MODEL_DIR, "model_1_freight_cost_p90.joblib")
+    booster_p10 = joblib.load(p10_path) if os.path.exists(p10_path) else None
+    booster_p90 = joblib.load(p90_path) if os.path.exists(p90_path) else None
     with open(meta_path, "r", encoding="utf-8") as f:
         meta = json.load(f)
-    _m1 = Model1(booster, meta)
+    _m1 = Model1(booster, meta, booster_p10=booster_p10, booster_p90=booster_p90)
     _m2 = joblib.load(m2_path)
 
 
@@ -156,6 +160,9 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
         result.update({
             "order_id": pred["order_id"], "vendor_id": pred["vendor_id"],
             "model1_predicted_cost": features["model_a_predicted_cost"],
+            "model1_interval_lower": features.get("cost_interval_lower"),
+            "model1_interval_upper": features.get("cost_interval_upper"),
+            "cost_drivers": features.get("top_drivers"),
             "billed_amount": features["actual_billed_amount"],
             "cost_mismatch": features["cost_mismatch"],
             "model2_proba": proba, "flagged": flagged, "explanation": explanation,
@@ -218,8 +225,14 @@ def dashboard(n: int = 300):
 def quote(req: QuoteRequest):
     if _m1 is None:
         raise HTTPException(status_code=503, detail="Model 1 not loaded yet.")
-    predicted = _m1.predict(req.model_dump())
-    return {"predicted_cost": predicted}
+    predicted, p10, p90 = _m1.predict_interval(req.model_dump())
+    shap_info = _m1.explain_prediction(req.model_dump(), top_k=3)
+    return {
+        "predicted_cost": predicted,
+        "interval_lower": p10,
+        "interval_upper": p90,
+        "top_drivers": shap_info["top_drivers"],
+    }
 
 
 # Mount static files for the frontend if directory exists (mounted last so /api routes take precedence)

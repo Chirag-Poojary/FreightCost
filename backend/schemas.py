@@ -13,6 +13,9 @@ class AuditResult(BaseModel):
     model1_predicted_cost: Optional[float] = None
     billed_amount: Optional[float] = None
     cost_mismatch: Optional[float] = None
+    model1_interval_lower: Optional[float] = None
+    model1_interval_upper: Optional[float] = None
+    cost_drivers: Optional[list[dict]] = None
     model2_proba: Optional[float] = None
     flagged: Optional[bool] = None
     explanation: Optional[str] = None
@@ -50,4 +53,7 @@ class QuoteRequest(BaseModel):
 
 class QuoteResponse(BaseModel):
     predicted_cost: float
+    interval_lower: Optional[float] = None
+    interval_upper: Optional[float] = None
+    top_drivers: Optional[list[dict]] = None
 

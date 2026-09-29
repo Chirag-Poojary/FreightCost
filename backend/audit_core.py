@@ -71,21 +71,62 @@ def _onehot_row(order, feature_meta):
 
 class Model1:
     """Wraps the raw XGBRegressor so callers just pass an order dict.
-    Reads product_categories/truck_types straight from model_1_features.json
-    -- never hardcoded, so a category list mismatch is structurally
-    impossible instead of a silent prediction bug."""
-    def __init__(self, booster, feature_meta):
+    Supports point estimates, quantile prediction intervals (P10/P90),
+    and exact TreeSHAP feature attribution without external dependencies."""
+    def __init__(self, booster, feature_meta, booster_p10=None, booster_p90=None):
         self.booster = booster
+        self.booster_p10 = booster_p10
+        self.booster_p90 = booster_p90
         self.meta = feature_meta
         self.columns = feature_meta["column_order"]
 
-    def predict(self, order):
+    def _prepare_df(self, order):
         import pandas as pd
         row = _onehot_row(order, self.meta)
         for c in self.columns:
             row.setdefault(c, 0)
-        x = pd.DataFrame([row])[self.columns]
+        return pd.DataFrame([row])[self.columns]
+
+    def predict(self, order):
+        x = self._prepare_df(order)
         return float(self.booster.predict(x)[0])
+
+    def predict_interval(self, order):
+        x = self._prepare_df(order)
+        point = float(self.booster.predict(x)[0])
+        p10 = float(self.booster_p10.predict(x)[0]) if self.booster_p10 is not None else round(point * 0.95, 2)
+        p90 = float(self.booster_p90.predict(x)[0]) if self.booster_p90 is not None else round(point * 1.05, 2)
+        lower = min(p10, p90, point)
+        upper = max(p10, p90, point)
+        return point, lower, upper
+
+    def explain_prediction(self, order, top_k=3):
+        import xgboost as xgb
+        df = self._prepare_df(order)
+        dmat = xgb.DMatrix(df)
+        raw_booster = getattr(self.booster, "get_booster", lambda: self.booster)()
+        contribs = raw_booster.predict(dmat, pred_contribs=True)[0]
+        feat_contribs = dict(zip(self.columns, contribs[:-1]))
+        base_val = float(contribs[-1])
+
+        # Group one-hot product categories and truck types into unified driver attributions
+        unified = {}
+        cat_sum = sum(val for k, val in feat_contribs.items() if k.startswith("cat_"))
+        truck_sum = sum(val for k, val in feat_contribs.items() if k.startswith("truck_"))
+        for k, val in feat_contribs.items():
+            if not k.startswith("cat_") and not k.startswith("truck_"):
+                unified[k] = float(val)
+        if cat_sum != 0:
+            unified["product_category"] = float(cat_sum)
+        if truck_sum != 0:
+            unified["truck_type"] = float(truck_sum)
+
+        sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)
+        return {
+            "base_value": round(base_val, 2),
+            "attributions": {k: round(v, 2) for k, v in unified.items()},
+            "top_drivers": [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:top_k]]
+        }
 
 
 def build_model2_features(pred, order, context, m1):
@@ -96,13 +137,18 @@ def build_model2_features(pred, order, context, m1):
     both delay fields are computed from the OCR-extracted total/actual_days,
     not copied from any ground truth, so an OCR slip genuinely changes the
     score, same as it would in production."""
-    predicted_cost = m1.predict(order)
+    predicted_cost, p10, p90 = m1.predict_interval(order)
     ocr_total = _num(pred["total"])
     ocr_days = _num(pred["actual_days"])
+    shap_info = m1.explain_prediction(order, top_k=3)
     return {
         "actual_billed_amount": ocr_total,
         "model_a_predicted_cost": predicted_cost,
+        "cost_interval_lower": p10,
+        "cost_interval_upper": p90,
         "cost_mismatch": ocr_total - predicted_cost,
+        "cost_mismatch_upper": max(0.0, ocr_total - p90),
+        "top_drivers": shap_info["top_drivers"],
         "actual_days": ocr_days,
         "true_delay_days": ocr_days - order["ideal_days"],
         "commercial_delay_days": ocr_days - order["quoted_days"],
