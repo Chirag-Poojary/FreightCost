@@ -11,10 +11,21 @@ import json
 
 CRITICAL = ["order_id", "vendor_id", "total", "actual_days"]
 
-MODEL2_FEATURES = ["actual_billed_amount", "model_a_predicted_cost", "cost_mismatch",
-                   "actual_days", "true_delay_days", "commercial_delay_days",
-                   "adverse_weather_days", "vendor_padding_ratio",
-                   "vendor_historical_risk_score"]
+MODEL2_FEATURES = [
+    "actual_billed_amount", "model_a_predicted_cost", "cost_mismatch",
+    "actual_days", "true_delay_days", "commercial_delay_days",
+    "adverse_weather_days", "vendor_padding_ratio",
+    "vendor_historical_risk_score",
+    # Phase 3: weight discrepancy anomaly detection features
+    "cost_mismatch_ratio",
+    "cost_mismatch_upper",
+    "cost_mismatch_upper_ratio",
+    "billed_to_p90_ratio",
+    "excess_rate_per_kg",
+    "excess_rate_per_ton_km",
+    "cost_mismatch_delay_skew",
+    "zero_delay_p90_breach"
+]
 
 
 def _num(s):
@@ -141,20 +152,51 @@ def build_model2_features(pred, order, context, m1):
     ocr_total = _num(pred["total"])
     ocr_days = _num(pred["actual_days"])
     shap_info = m1.explain_prediction(order, top_k=3)
+
+    pred_safe = max(1.0, float(predicted_cost))
+    billed = float(ocr_total)
+    days = float(ocr_days)
+    mismatch = billed - pred_safe
+    p90_safe = max(1.0, float(p90))
+    cost_upper = max(0.0, billed - p90)
+
+    billable_wt = max(1.0, float(order.get("billable_weight_kg", 1.0)))
+    dist = max(10.0, float(order.get("distance_km", 10.0)))
+    weight_tons = billable_wt / 1000.0
+
+    comm_delay = max(0.0, days - float(order.get("quoted_days", 0.0)))
+    true_delay = days - float(order.get("ideal_days", 0.0))
+
+    cost_mismatch_ratio = round(mismatch / pred_safe, 4)
+    cost_mismatch_upper_ratio = round(cost_upper / pred_safe, 4)
+    billed_to_p90_ratio = round(billed / p90_safe, 4)
+    excess_rate_per_kg = round(mismatch / billable_wt, 4)
+    excess_rate_per_ton_km = round(mismatch / (weight_tons * dist), 4)
+    cost_mismatch_delay_skew = round(cost_mismatch_ratio / (comm_delay + 0.1), 4)
+    zero_delay_p90_breach = 1.0 if (billed > p90 and comm_delay <= 0.2) else 0.0
+
     return {
-        "actual_billed_amount": ocr_total,
+        "actual_billed_amount": billed,
         "model_a_predicted_cost": predicted_cost,
         "cost_interval_lower": p10,
         "cost_interval_upper": p90,
-        "cost_mismatch": ocr_total - predicted_cost,
-        "cost_mismatch_upper": max(0.0, ocr_total - p90),
+        "cost_mismatch": mismatch,
+        "cost_mismatch_upper": cost_upper,
         "top_drivers": shap_info["top_drivers"],
-        "actual_days": ocr_days,
-        "true_delay_days": ocr_days - order["ideal_days"],
-        "commercial_delay_days": ocr_days - order["quoted_days"],
-        "adverse_weather_days": context.get("adverse_weather_days", 0.0),
-        "vendor_padding_ratio": context.get("vendor_padding_ratio", 0.0),
-        "vendor_historical_risk_score": context["vendor_historical_risk_score"],
+        "actual_days": days,
+        "true_delay_days": true_delay,
+        "commercial_delay_days": comm_delay,
+        "adverse_weather_days": float(context.get("adverse_weather_days", 0.0)),
+        "vendor_padding_ratio": float(context.get("vendor_padding_ratio", 0.0)),
+        "vendor_historical_risk_score": float(context["vendor_historical_risk_score"]),
+        # Phase 3: weight discrepancy anomaly detection features
+        "cost_mismatch_ratio": cost_mismatch_ratio,
+        "cost_mismatch_upper_ratio": cost_mismatch_upper_ratio,
+        "billed_to_p90_ratio": billed_to_p90_ratio,
+        "excess_rate_per_kg": excess_rate_per_kg,
+        "excess_rate_per_ton_km": excess_rate_per_ton_km,
+        "cost_mismatch_delay_skew": cost_mismatch_delay_skew,
+        "zero_delay_p90_breach": zero_delay_p90_breach,
     }
 
 

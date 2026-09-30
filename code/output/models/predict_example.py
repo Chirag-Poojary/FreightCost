@@ -67,25 +67,75 @@ def explain_freight_cost(distance_km, ideal_days, quoted_days, weight_kg,
     sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)
     return base_val, [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:top_k]]
 
-def score_invoice_risk(**features):
-    X = pd.DataFrame([{f: features[f] for f in M2F["features"]}])
+def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, cost_mismatch=None,
+                       actual_days=None, true_delay_days=None, commercial_delay_days=None,
+                       adverse_weather_days=0.0, vendor_padding_ratio=1.10,
+                       vendor_historical_risk_score=0.05, p90=None,
+                       billable_weight_kg=10000.0, distance_km=1000.0, **extra):
+    pred_cost = max(1.0, float(model_a_predicted_cost))
+    billed = float(actual_billed_amount)
+    mismatch = float(cost_mismatch) if cost_mismatch is not None else (billed - pred_cost)
+    days = float(actual_days) if actual_days is not None else 3.0
+    true_delay = float(true_delay_days) if true_delay_days is not None else 0.0
+    comm_delay = max(0.0, float(commercial_delay_days)) if commercial_delay_days is not None else 0.0
+
+    p90_val = float(p90) if p90 is not None else pred_cost * 1.05
+    p90_safe = max(1.0, p90_val)
+    cost_upper = max(0.0, billed - p90_val)
+
+    weight_safe = max(1.0, float(billable_weight_kg))
+    dist_safe = max(10.0, float(distance_km))
+    weight_tons = weight_safe / 1000.0
+
+    cost_mismatch_ratio = mismatch / pred_cost
+    cost_mismatch_upper_ratio = cost_upper / pred_cost
+    billed_to_p90_ratio = billed / p90_safe
+    excess_rate_per_kg = mismatch / weight_safe
+    excess_rate_per_ton_km = mismatch / (weight_tons * dist_safe)
+    cost_mismatch_delay_skew = cost_mismatch_ratio / (comm_delay + 0.1)
+    zero_delay_p90_breach = 1.0 if (billed > p90_val and comm_delay <= 0.2) else 0.0
+
+    row = {
+        "actual_billed_amount": billed,
+        "model_a_predicted_cost": pred_cost,
+        "cost_mismatch": mismatch,
+        "actual_days": days,
+        "true_delay_days": true_delay,
+        "commercial_delay_days": comm_delay,
+        "adverse_weather_days": float(adverse_weather_days),
+        "vendor_padding_ratio": float(vendor_padding_ratio),
+        "vendor_historical_risk_score": float(vendor_historical_risk_score),
+        "cost_mismatch_ratio": round(cost_mismatch_ratio, 4),
+        "cost_mismatch_upper": round(cost_upper, 2),
+        "cost_mismatch_upper_ratio": round(cost_mismatch_upper_ratio, 4),
+        "billed_to_p90_ratio": round(billed_to_p90_ratio, 4),
+        "excess_rate_per_kg": round(excess_rate_per_kg, 4),
+        "excess_rate_per_ton_km": round(excess_rate_per_ton_km, 4),
+        "cost_mismatch_delay_skew": round(cost_mismatch_delay_skew, 4),
+        "zero_delay_p90_breach": zero_delay_p90_breach,
+    }
+    for k, v in extra.items():
+        if k in M2F["features"]:
+            row[k] = v
+    X = pd.DataFrame([row])[M2F["features"]]
     proba = float(M2.predict_proba(X)[0, 1])
     return proba, int(proba >= M2F["threshold"])
 
 if __name__ == "__main__":
     cost, p10, p90 = predict_freight_cost(1200, 3.1, 3.5, 8000, 6000, 91.5, 2, "Steel Coils")
     base_val, drivers = explain_freight_cost(1200, 3.1, 3.5, 8000, 6000, 91.5, 2, "Steel Coils")
-    print(f"Predicted Should-Cost: ₹{cost:,.2f}")
-    print(f"80% Uncertainty Band:  ₹{p10:,.2f} – ₹{p90:,.2f}")
-    print(f"Base Expected Value:   ₹{base_val:,.2f}")
+    print(f"Predicted Should-Cost: ?{cost:,.2f}")
+    print(f"80% Uncertainty Band:  ?{p10:,.2f} ? ?{p90:,.2f}")
+    print(f"Base Expected Value:   ?{base_val:,.2f}")
     print("Top TreeSHAP Drivers:")
     for d in drivers:
         sign = "+" if d["impact"] > 0 else ""
-        print(f"  - {d['feature']:<22} {sign}₹{d['impact']:,.2f}")
+        print(f"  - {d['feature']:<22} {sign}?{d['impact']:,.2f}")
 
     proba, flag = score_invoice_risk(
-        actual_billed_amount=cost*1.15, model_a_predicted_cost=cost,
-        cost_mismatch=cost*0.15, actual_days=4.2, true_delay_days=1.1,
-        commercial_delay_days=0.7, adverse_weather_days=1,
-        vendor_padding_ratio=1.13, vendor_historical_risk_score=0.08)
+        actual_billed_amount=cost*1.25, model_a_predicted_cost=cost,
+        actual_days=3.5, ideal_days=3.1, quoted_days=3.5,
+        adverse_weather_days=0, vendor_padding_ratio=1.13,
+        vendor_historical_risk_score=0.08, p90=p90,
+        billable_weight_kg=8000, distance_km=1200)
     print(f"Invoice Risk Probability: {proba:.1%} | Flag for Review: {bool(flag)}")

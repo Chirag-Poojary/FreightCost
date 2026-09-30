@@ -355,7 +355,8 @@ def predict_should_cost(distance_km, ideal_days, quoted_days, weight_kg,
 # -------------------------------------------------------------------------
 def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, actual_days,
                        ideal_days, quoted_days, adverse_weather_days,
-                       vendor_id, vendor_padding_ratio=None, vendor_historical_risk=None):
+                       vendor_id, vendor_padding_ratio=None, vendor_historical_risk=None,
+                       p90=None, billable_weight_kg=10000.0, distance_km=1000.0):
     cost_mismatch = actual_billed_amount - model_a_predicted_cost
     true_delay = max(0.0, actual_days - ideal_days)
     commercial_delay = max(0.0, actual_days - quoted_days)
@@ -364,9 +365,18 @@ def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, actual_days
     v_padding = vendor_padding_ratio if vendor_padding_ratio is not None else v_info["padding_ratio"]
     v_risk = vendor_historical_risk if vendor_historical_risk is not None else v_info["risk_score"]
 
+    pred_safe = max(1.0, float(model_a_predicted_cost))
+    billed = float(actual_billed_amount)
+    p90_val = float(p90) if p90 is not None else pred_safe * 1.05
+    p90_safe = max(1.0, p90_val)
+    cost_upper = max(0.0, billed - p90_val)
+    weight_safe = max(1.0, float(billable_weight_kg))
+    dist_safe = max(10.0, float(distance_km))
+    weight_tons = weight_safe / 1000.0
+
     feature_row = {
-        "actual_billed_amount": float(actual_billed_amount),
-        "model_a_predicted_cost": float(model_a_predicted_cost),
+        "actual_billed_amount": billed,
+        "model_a_predicted_cost": pred_safe,
         "cost_mismatch": float(cost_mismatch),
         "actual_days": float(actual_days),
         "true_delay_days": float(true_delay),
@@ -374,6 +384,15 @@ def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, actual_days
         "adverse_weather_days": float(adverse_weather_days),
         "vendor_padding_ratio": float(v_padding),
         "vendor_historical_risk_score": float(v_risk),
+        # Phase 3: weight discrepancy anomaly detection features
+        "cost_mismatch_ratio": round(cost_mismatch / pred_safe, 4),
+        "cost_mismatch_upper": round(cost_upper, 2),
+        "cost_mismatch_upper_ratio": round(cost_upper / pred_safe, 4),
+        "billed_to_p90_ratio": round(billed / p90_safe, 4),
+        "excess_rate_per_kg": round(cost_mismatch / weight_safe, 4),
+        "excess_rate_per_ton_km": round(cost_mismatch / (weight_tons * dist_safe), 4),
+        "cost_mismatch_delay_skew": round((cost_mismatch / pred_safe) / (commercial_delay + 0.1), 4),
+        "zero_delay_p90_breach": 1.0 if (billed > p90_val and commercial_delay <= 0.2) else 0.0,
     }
 
     X = pd.DataFrame([feature_row])[M2_CONFIG["features"]]
@@ -527,7 +546,10 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
         ideal_days=ideal_days,
         quoted_days=quoted_days,
         adverse_weather_days=adverse_weather,
-        vendor_id=ven_id or "VEN001"
+        vendor_id=ven_id or "VEN001",
+        p90=p90,
+        billable_weight_kg=max(float(weight_kg), float(dim_weight_kg)),
+        distance_km=distance_km
     )
 
     # Step 7: Audit Rationale
