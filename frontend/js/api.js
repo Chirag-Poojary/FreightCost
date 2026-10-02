@@ -51,7 +51,7 @@ const api = {
   /**
    * Post an invoice file to the audit pipeline
    */
-  audit: (file, extractor = "rules", provider = "groq") => {
+  audit: (file, extractor = "qwen3-vl", provider = "groq") => {
     const form = new FormData();
     form.append("file", file);
     return apiCall(

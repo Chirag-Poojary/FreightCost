@@ -56,7 +56,7 @@ if _SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SCRIPT_DIR)
 
 # Import OCR and extraction modules
-from ocr_extract import ocr, extract_rules, extract_llm
+from ocr_extract import ocr, extract_llm, extract_vlm
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, "code"))
@@ -416,11 +416,11 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Invoice image not found: {image_path}")
 
-    # Step 1: OCR & Extraction
-    raw_ocr = ocr(image_path)
-    if extractor == "rules":
-        extracted = extract_rules(raw_ocr)
+    # Step 1: Extraction
+    if extractor in ("qwen3-vl", "vlm"):
+        extracted = extract_vlm(image_path, model=model or "Qwen3-VL-4B-Instruct")
     else:
+        raw_ocr = ocr(image_path)
         extracted = extract_llm(raw_ocr, provider=provider, model=model)
 
     inv_id = extracted.get("invoice_id")

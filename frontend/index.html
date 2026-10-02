@@ -273,35 +273,20 @@
           <label class="form-label">Extraction Engine</label>
 
           <div class="radio-group">
-
             <label class="radio-card active">
-
-              <input type="radio" name="extractor" value="rules" checked>
-
+              <input type="radio" name="extractor" value="qwen3-vl" checked>
               <div>
-
-                <div style="font-weight: 600;">Rule-Based (Regex)</div>
-
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Fast, deterministic pattern matching</div>
-
+                <div style="font-weight: 600;">Qwen3-VL-4B-Instruct</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Local Multimodal Vision-Language Model</div>
               </div>
-
             </label>
-
             <label class="radio-card">
-
               <input type="radio" name="extractor" value="llm">
-
               <div>
-
-                <div style="font-weight: 600;">LLM Extractor</div>
-
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Groq / Cloud LPU fallback parser</div>
-
+                <div style="font-weight: 600;">Cloud LLM / API</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Groq / Gemini / OpenRouter / Cerebras</div>
               </div>
-
             </label>
-
           </div>
 
         </div>

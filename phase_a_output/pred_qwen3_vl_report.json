@@ -1,0 +1,207 @@
+{
+  "n_docs": 100,
+  "n_docs_without_prediction": 99,
+  "per_field": {
+    "invoice_id": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "order_id": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "vendor_id": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "invoice_date": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "origin": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "destination": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "actual_days": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "weight_kg": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "freight_base": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "detention": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "toll": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "total": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "vendor_gstin": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    }
+  },
+  "mean_field_acc": {
+    "value": 0.0,
+    "ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "critical_all_correct": {
+    "value": 0.0,
+    "ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "silent_error_rate": {
+    "value": 0.0,
+    "ci": [
+      0.0,
+      0.0
+    ]
+  },
+  "gate": {
+    "pass_rate": 0.0,
+    "cells": {
+      "auto_correct": 0,
+      "silent_error": 0,
+      "caught": 100,
+      "false_reject": 0
+    },
+    "silent_error_rate_of_passed": null,
+    "false_reject_rate": 0.0,
+    "rejection_reasons": {
+      "missing:order_id": 100,
+      "missing:vendor_id": 100,
+      "missing:total": 100,
+      "missing:actual_days": 100
+    }
+  },
+  "by_layout": {
+    "classic": {
+      "n": 34,
+      "mean_field_acc": 0.0,
+      "critical_all_correct": 0.0,
+      "silent_error_rate": 0.0
+    },
+    "modern": {
+      "n": 33,
+      "mean_field_acc": 0.0,
+      "critical_all_correct": 0.0,
+      "silent_error_rate": 0.0
+    },
+    "compact": {
+      "n": 33,
+      "mean_field_acc": 0.0,
+      "critical_all_correct": 0.0,
+      "silent_error_rate": 0.0
+    }
+  }
+}

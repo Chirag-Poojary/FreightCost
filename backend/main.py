@@ -40,8 +40,8 @@ for candidate in [
         sys.path.insert(0, os.path.abspath(candidate))
         break
 
-from ocr_extract import ocr, extract_rules, extract_llm          # existing Phase A
-from audit_explanation import explain_rules, explain_llm         # existing Phase C
+from ocr_extract import ocr, extract_llm, extract_vlm
+from audit_explanation import explain_llm
 from audit_core import confidence_gate, build_model2_features, score_model2, Model1
 from db import Db
 from schemas import AuditResult, DashboardStats, VendorRisk, QuoteRequest, QuoteResponse
@@ -120,7 +120,7 @@ def health():
 
 
 @app.post("/api/audit", response_model=AuditResult)
-async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
+async def audit_invoice(file: UploadFile = File(...), extractor: str = "qwen3-vl",
                         provider: str = "groq"):
     db = get_db()
 
@@ -128,11 +128,19 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        text = ocr(tmp_path)
+        if extractor in ("qwen3-vl", "vlm"):
+            try:
+                pred = extract_vlm(tmp_path, model="Qwen3-VL-4B-Instruct")
+            except Exception:
+                text = ocr(tmp_path)
+                pred = extract_llm(text, provider=provider)
+        else:
+            text = ocr(tmp_path)
+            pred = extract_llm(text, provider=provider)
     finally:
-        os.unlink(tmp_path)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
-    pred = extract_rules(text) if extractor == "rules" else extract_llm(text, provider=provider)
     passed, reason = confidence_gate(pred, db.order_exists, db.vendor_exists)
 
     result = {"filename": file.filename, "extractor_used": extractor,
@@ -154,8 +162,7 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
 
         rec_for_explain = {"passed": True, "predicted_flag": flagged, "proba": proba,
                            "features": features}
-        explanation = (explain_rules(rec_for_explain) if extractor == "rules"
-                       else explain_llm(rec_for_explain, provider))
+        explanation = explain_llm(rec_for_explain, provider)
 
         result.update({
             "order_id": pred["order_id"], "vendor_id": pred["vendor_id"],
@@ -172,7 +179,8 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
         db.bump_vendor_stats(pred["vendor_id"], flagged)
     else:
         rec_for_explain = {"passed": False, "reason": reason}
-        result["explanation"] = explain_rules(rec_for_explain)
+        explanation = explain_llm(rec_for_explain, provider)
+        result["explanation"] = explanation
 
     db.insert_audit_log({
         "filename": result["filename"], "extractor_used": extractor,
@@ -246,8 +254,6 @@ if os.path.isdir(BENCH_DIR):
 FRONTEND_DIR = os.path.abspath(os.path.join(_CURR_DIR, "..", "frontend"))
 if not os.path.isdir(FRONTEND_DIR):
     FRONTEND_DIR = os.path.abspath(os.path.join(_CURR_DIR, "frontend"))
-if not os.path.isdir(FRONTEND_DIR):
-    FRONTEND_DIR = os.path.abspath(os.path.join(_BUNDLE_DIR, "webapp", "frontend"))
 
 if os.path.isdir(FRONTEND_DIR):
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

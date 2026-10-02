@@ -1,0 +1,211 @@
+{
+  "n_docs": 100,
+  "n_docs_without_prediction": 70,
+  "per_field": {
+    "invoice_id": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "order_id": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 1,
+      "missing": 70,
+      "hallucinated": 0
+    },
+    "vendor_id": {
+      "n": 100,
+      "accuracy": 0.28,
+      "ci95": [
+        0.20139559167598364,
+        0.37488212361345724
+      ],
+      "wrong": 1,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "invoice_date": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "origin": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "destination": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "actual_days": {
+      "n": 100,
+      "accuracy": 0.24,
+      "ci95": [
+        0.16691211265459965,
+        0.3323251872329213
+      ],
+      "wrong": 4,
+      "missing": 72,
+      "hallucinated": 0
+    },
+    "weight_kg": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    },
+    "freight_base": {
+      "n": 100,
+      "accuracy": 0.28,
+      "ci95": [
+        0.20139559167598364,
+        0.37488212361345724
+      ],
+      "wrong": 1,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "detention": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "toll": {
+      "n": 100,
+      "accuracy": 0.29,
+      "ci95": [
+        0.21014706973984149,
+        0.3853907494000793
+      ],
+      "wrong": 0,
+      "missing": 71,
+      "hallucinated": 0
+    },
+    "total": {
+      "n": 100,
+      "accuracy": 0.24,
+      "ci95": [
+        0.16691211265459965,
+        0.3323251872329213
+      ],
+      "wrong": 3,
+      "missing": 73,
+      "hallucinated": 0
+    },
+    "vendor_gstin": {
+      "n": 100,
+      "accuracy": 0.0,
+      "ci95": [
+        0.0,
+        0.03699480747600191
+      ],
+      "wrong": 0,
+      "missing": 100,
+      "hallucinated": 0
+    }
+  },
+  "mean_field_acc": {
+    "value": 0.23615384615384616,
+    "ci": [
+      0.16692307692307692,
+      0.3123076923076923
+    ]
+  },
+  "critical_all_correct": {
+    "value": 0.2,
+    "ci": [
+      0.13,
+      0.28
+    ]
+  },
+  "silent_error_rate": {
+    "value": 0.04,
+    "ci": [
+      0.01,
+      0.08
+    ]
+  },
+  "gate": {
+    "pass_rate": 0.24,
+    "cells": {
+      "auto_correct": 20,
+      "silent_error": 4,
+      "caught": 76,
+      "false_reject": 0
+    },
+    "silent_error_rate_of_passed": 0.16666666666666666,
+    "false_reject_rate": 0.0,
+    "rejection_reasons": {
+      "missing:total": 73,
+      "missing:actual_days": 72,
+      "days_out_of_bounds": 1,
+      "arithmetic_mismatch": 2,
+      "missing:vendor_id": 71,
+      "unknown_order_id": 1,
+      "total_out_of_bounds": 1,
+      "missing:order_id": 70
+    }
+  },
+  "by_layout": {
+    "classic": {
+      "n": 34,
+      "mean_field_acc": 0.24208144796380088,
+      "critical_all_correct": 0.23529411764705882,
+      "silent_error_rate": 0.0
+    },
+    "modern": {
+      "n": 33,
+      "mean_field_acc": 0.24242424242424243,
+      "critical_all_correct": 0.18181818181818182,
+      "silent_error_rate": 0.06060606060606061
+    },
+    "compact": {
+      "n": 33,
+      "mean_field_acc": 0.22377622377622378,
+      "critical_all_correct": 0.18181818181818182,
+      "silent_error_rate": 0.06060606060606061
+    }
+  }
+}

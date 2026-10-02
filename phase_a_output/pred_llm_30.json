@@ -1,0 +1,542 @@
+[
+  {
+    "doc_id": "INV059900",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV059900",
+      "order_id": "ORD024516",
+      "vendor_id": "VEN017",
+      "total": 13553.59,
+      "actual_days": 0.64,
+      "invoice_date": "29-12-2025",
+      "origin": "Jaipur",
+      "destination": "Ludhiana",
+      "truck_type": "10-wheeler",
+      "freight_base": 12518.47,
+      "detention": 0.0,
+      "toll": 1035.12
+    }
+  },
+  {
+    "doc_id": "INV008647",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV008647",
+      "order_id": "ORD030920",
+      "vendor_id": "VEN011",
+      "total": null,
+      "actual_days": 2,
+      "invoice_date": "08-06-2023",
+      "origin": "Surat",
+      "destination": "Delhi",
+      "truck_type": "6-wheeler",
+      "freight_base": 20169.6,
+      "detention": 0.0,
+      "toll": 2266.25
+    }
+  },
+  {
+    "doc_id": "INV018570",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV018570",
+      "order_id": "ORD046184",
+      "vendor_id": "VEN005",
+      "total": 30835.94,
+      "actual_days": 4.31,
+      "invoice_date": "09-12-2023",
+      "origin": "Hyderabad",
+      "destination": "Kolkata",
+      "truck_type": "6-wheeler",
+      "freight_base": 24573.94,
+      "detention": 3315.0,
+      "toll": 2947.0
+    }
+  },
+  {
+    "doc_id": "INV022764",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV022764",
+      "order_id": "ORD012899",
+      "vendor_id": "VEN020",
+      "total": 15515.79,
+      "actual_days": 1.42,
+      "invoice_date": "22-02-2024",
+      "origin": "Delhi",
+      "destination": "Indore",
+      "truck_type": "6-wheeler",
+      "freight_base": 13869.14,
+      "detention": 30.0,
+      "toll": 1616.65
+    }
+  },
+  {
+    "doc_id": "INV019088",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV019088",
+      "order_id": "ORD043821",
+      "vendor_id": "VEN015",
+      "total": null,
+      "actual_days": null,
+      "invoice_date": "19-12-2023",
+      "origin": "Kanpur",
+      "destination": "Pune",
+      "truck_type": "6-wheeler",
+      "freight_base": 21045.07,
+      "detention": 3975.0,
+      "toll": 2649.15
+    }
+  },
+  {
+    "doc_id": "INV003384",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV003384",
+      "order_id": "ORD036388",
+      "vendor_id": "VEN002",
+      "total": 54745.2,
+      "actual_days": 254,
+      "invoice_date": "07-03-2023",
+      "origin": "Pune",
+      "destination": "Ludhiana",
+      "truck_type": "10-wheeler",
+      "freight_base": 51281.25,
+      "detention": 0.0,
+      "toll": 3463.95
+    }
+  },
+  {
+    "doc_id": "INV026630",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV026630",
+      "order_id": "ORD049594",
+      "vendor_id": "VEN003",
+      "total": 34927.93,
+      "actual_days": 2.29,
+      "invoice_date": "03-05-2024",
+      "origin": "Nagpur",
+      "destination": "Mundra",
+      "truck_type": "12-wheeler",
+      "freight_base": 2963.33,
+      "detention": 285.0,
+      "toll": 2279.2
+    }
+  },
+  {
+    "doc_id": "INV036828",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV036828",
+      "order_id": "ORD050962",
+      "vendor_id": "VEN003",
+      "total": 18499.89,
+      "actual_days": 1.13,
+      "invoice_date": "03-11-2024",
+      "origin": "Indore",
+      "destination": "Mumbai",
+      "truck_type": "12-wheeler",
+      "freight_base": 17243.91,
+      "detention": 0.0,
+      "toll": 1255.98
+    }
+  },
+  {
+    "doc_id": "INV030378",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV030378",
+      "order_id": "ORD028839",
+      "vendor_id": "VEN002",
+      "total": 16045.59,
+      "actual_days": 1.29,
+      "invoice_date": "09-07-2024",
+      "origin": "Ahmedabad",
+      "destination": "Delhi",
+      "truck_type": "6-wheeler",
+      "freight_base": 14280.89,
+      "detention": 0.0,
+      "toll": 1764.7
+    }
+  },
+  {
+    "doc_id": "INV033722",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV033722",
+      "order_id": "ORD026795",
+      "vendor_id": "VEN005",
+      "total": 17024.41,
+      "actual_days": 1.32,
+      "invoice_date": "09-09-2024",
+      "origin": "Jaipur",
+      "destination": "Mundra",
+      "truck_type": "6-wheeler",
+      "freight_base": 15134.14,
+      "detention": 180.0,
+      "toll": 1710.27
+    }
+  },
+  {
+    "doc_id": "INV007254",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV007254",
+      "order_id": "ORD037313",
+      "vendor_id": "VEN013",
+      "total": 25296.38,
+      "actual_days": 1.51,
+      "invoice_date": "13-05-2023",
+      "origin": "Bengaluru",
+      "destination": "Visakhapatnam",
+      "truck_type": "10-wheeler",
+      "freight_base": 23184.33,
+      "detention": 165.0,
+      "toll": 1947.05
+    }
+  },
+  {
+    "doc_id": "INV051173",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV051173",
+      "order_id": "ORD017689",
+      "vendor_id": "VEN005",
+      "total": 33542.09,
+      "actual_days": 1.85,
+      "invoice_date": "21-07-2025",
+      "origin": "Bengaluru",
+      "destination": "Indore",
+      "truck_type": "10-wheeler",
+      "freight_base": 31222.99,
+      "detention": 0.0,
+      "toll": 2319.1
+    }
+  },
+  {
+    "doc_id": "INV020695",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV020695",
+      "order_id": "ORD004503",
+      "vendor_id": "VEN003",
+      "total": 15279.18,
+      "actual_days": 1.72,
+      "invoice_date": "15-01-2024",
+      "origin": "Jaipur",
+      "destination": "Indore",
+      "truck_type": "10-wheeler",
+      "freight_base": 12930.41,
+      "detention": 1230.0,
+      "toll": 1118.77
+    }
+  },
+  {
+    "doc_id": "INV009948",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV009948",
+      "order_id": "ORD057697",
+      "vendor_id": "VEN002",
+      "total": 29640.57,
+      "actual_days": 1.49,
+      "invoice_date": "30-06-2023",
+      "origin": "Ahmedabad",
+      "destination": "Kanpur",
+      "truck_type": "10-wheeler",
+      "freight_base": 27542.32,
+      "detention": 0.0,
+      "toll": 2098.25
+    }
+  },
+  {
+    "doc_id": "INV044596",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV044596",
+      "order_id": "ORD005203",
+      "vendor_id": "VEN003",
+      "total": 30195.73,
+      "actual_days": 2.34,
+      "invoice_date": "24-03-2025",
+      "origin": "Pune",
+      "destination": "Chennai",
+      "truck_type": "12-wheeler",
+      "freight_base": 27662.38,
+      "detention": 510.0,
+      "toll": 2023.35
+    }
+  },
+  {
+    "doc_id": "INV011565",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV011565",
+      "order_id": "ORD032650",
+      "vendor_id": "VEN003",
+      "total": 48545.5,
+      "actual_days": 3.43,
+      "invoice_date": "02-08-2023",
+      "origin": "Gurugram",
+      "destination": "Visakhapatnam",
+      "truck_type": "10-wheeler",
+      "freight_base": 44441.25,
+      "detention": 795.0,
+      "toll": 3309.25
+    }
+  },
+  {
+    "doc_id": "INV058452",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV058452",
+      "order_id": "ORD045629",
+      "vendor_id": "VEN005",
+      "total": 34859.66,
+      "actual_days": 1.86,
+      "invoice_date": "03-12-2025",
+      "origin": "Coimbatore",
+      "destination": "Mumbai",
+      "truck_type": "12-wheeler",
+      "freight_base": 32562.96,
+      "detention": 0.0,
+      "toll": 2296.7
+    }
+  },
+  {
+    "doc_id": "INV030629",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV030629",
+      "order_id": "ORD013939",
+      "vendor_id": "VEN005",
+      "total": 20884.25,
+      "actual_days": 2,
+      "invoice_date": "15-07-2024",
+      "origin": "Nagpur",
+      "destination": "Kanpur",
+      "truck_type": "10-wheeler",
+      "freight_base": 17042.08,
+      "detention": 2400.0,
+      "toll": 1442.17
+    }
+  },
+  {
+    "doc_id": "INV031725",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV031725",
+      "order_id": "ORD018114",
+      "vendor_id": "VEN010",
+      "total": 27292.5,
+      "actual_days": 1.18,
+      "invoice_date": "03-08-2024",
+      "origin": "Bengaluru",
+      "destination": "Visakhapatnam",
+      "truck_type": "10-wheeler",
+      "freight_base": 25345.45,
+      "detention": 0.0,
+      "toll": 1947.05
+    }
+  },
+  {
+    "doc_id": "INV017008",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV017008",
+      "order_id": "ORD014185",
+      "vendor_id": "VEN008",
+      "total": 28863.24,
+      "actual_days": 3.38,
+      "invoice_date": "09-11-2023",
+      "origin": "Delhi",
+      "destination": "Surat",
+      "truck_type": "10-wheeler",
+      "freight_base": 24526.99,
+      "detention": 2070.0,
+      "toll": 2266.25
+    }
+  },
+  {
+    "doc_id": "INV003723",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": null,
+      "order_id": "ORD089455",
+      "vendor_id": null,
+      "total": null,
+      "actual_days": null,
+      "invoice_date": null,
+      "origin": null,
+      "destination": null,
+      "truck_type": null,
+      "freight_base": null,
+      "detention": null,
+      "toll": null
+    }
+  },
+  {
+    "doc_id": "INV017335",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV017335",
+      "order_id": "ORD023011",
+      "vendor_id": "VEN012",
+      "total": 15723740,
+      "actual_days": 1.12,
+      "invoice_date": "12-11-2023",
+      "origin": "Ahmedabad",
+      "destination": "Mumbai",
+      "truck_type": "6-wheeler",
+      "freight_base": 13846.02,
+      "detention": 330.0,
+      "toll": 1061.38
+    }
+  },
+  {
+    "doc_id": "INV052095",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV052095",
+      "order_id": "ORD018957",
+      "vendor_id": "VEN019",
+      "total": 23975.4,
+      "actual_days": 1.69,
+      "invoice_date": "07-08-2025",
+      "origin": "Kanpur",
+      "destination": "Hyderabad",
+      "truck_type": "6-wheeler",
+      "freight_base": 21534.57,
+      "detention": 0.0,
+      "toll": 2440.9
+    }
+  },
+  {
+    "doc_id": "INV019862",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV019862",
+      "order_id": "ORD016960",
+      "vendor_id": "VEN001",
+      "total": 35047.59,
+      "actual_days": 1.89,
+      "invoice_date": "30-12-2023",
+      "origin": "Kolkata",
+      "destination": "Nagpur",
+      "truck_type": "12-wheeler",
+      "freight_base": 32676.34,
+      "detention": 0.0,
+      "toll": 2371.25
+    }
+  },
+  {
+    "doc_id": "INV016195",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV016195",
+      "order_id": "ORD011143",
+      "vendor_id": "VEN004",
+      "total": 40591.3,
+      "actual_days": 2.04,
+      "invoice_date": "23-10-2023",
+      "origin": "Indore",
+      "destination": "Chennai",
+      "truck_type": "12-wheeler",
+      "freight_base": 37653.72,
+      "detention": 360.0,
+      "toll": 2577.58
+    }
+  },
+  {
+    "doc_id": "INV047594",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV047594",
+      "order_id": "ORD020107",
+      "vendor_id": "VEN005",
+      "total": 30643.78,
+      "actual_days": 2,
+      "invoice_date": "18-05-2025",
+      "origin": "Bengaluru",
+      "destination": "Indore",
+      "truck_type": "10-wheeler",
+      "freight_base": 28174.68,
+      "detention": 150.0,
+      "toll": 2319.1
+    }
+  },
+  {
+    "doc_id": "INV004024",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV004024",
+      "order_id": "ORD008551",
+      "vendor_id": "VEN001",
+      "total": 4699.5,
+      "actual_days": 0.42,
+      "invoice_date": "16-03-2023",
+      "origin": "Gurugram",
+      "destination": "Jaipur",
+      "truck_type": "6-wheeler",
+      "freight_base": 4188.95,
+      "detention": 30.0,
+      "toll": 480.55
+    }
+  },
+  {
+    "doc_id": "INV006574",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": "INV006574",
+      "order_id": "ORD022368",
+      "vendor_id": "VEN005",
+      "total": 43712.09,
+      "actual_days": 2.35,
+      "invoice_date": "02-05-2023",
+      "origin": "Kanpur",
+      "destination": "Visakhapatnam",
+      "truck_type": "6-wheeler",
+      "freight_base": 40146.71,
+      "detention": 1125.0,
+      "toll": 2440.38
+    }
+  },
+  {
+    "doc_id": "INV038953",
+    "layout": "modern",
+    "fields": {
+      "invoice_id": "INV038953",
+      "order_id": "ORD005772",
+      "vendor_id": "VEN007",
+      "total": 20029.27,
+      "actual_days": 2.25,
+      "invoice_date": "12-12-2024",
+      "origin": "Nagpur",
+      "destination": "Bengaluru",
+      "truck_type": "6-wheeler",
+      "freight_base": 17605.72,
+      "detention": 375.0,
+      "toll": 2048.55
+    }
+  },
+  {
+    "doc_id": "INV025398",
+    "layout": "compact",
+    "fields": {
+      "invoice_id": "INV025398",
+      "order_id": "ORD009101",
+      "vendor_id": "VEN002",
+      "total": 66487.79,
+      "actual_days": 3.93,
+      "invoice_date": "11-04-2024",
+      "origin": "Delhi",
+      "destination": "Coimbatore",
+      "truck_type": "12-wheeler",
+      "freight_base": 62014.09,
+      "detention": 0.0,
+      "toll": 4473.7
+    }
+  }
+]

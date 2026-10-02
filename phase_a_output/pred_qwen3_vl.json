@@ -1,0 +1,32 @@
+[
+  {
+    "doc_id": "INV059900",
+    "layout": "classic",
+    "fields": {
+      "invoice_id": null,
+      "order_id": null,
+      "vendor_id": null,
+      "invoice_date": null,
+      "origin": null,
+      "destination": null,
+      "freight_base": null,
+      "detention": null,
+      "toll": null,
+      "total": null,
+      "weight_kg": null,
+      "actual_days": null,
+      "vendor_name": null,
+      "buyer_name": null,
+      "vendor_gstin": null,
+      "buyer_gstin": null,
+      "lr_number": null,
+      "eway_bill_no": null,
+      "vehicle_no": null,
+      "hsn_sac": null,
+      "cgst": null,
+      "sgst": null,
+      "igst": null,
+      "currency": null
+    }
+  }
+]
