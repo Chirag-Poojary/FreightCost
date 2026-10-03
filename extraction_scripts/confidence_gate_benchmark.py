@@ -332,7 +332,7 @@ if __name__ == "__main__":
     ap.add_argument("--start", type=int, default=0, help="Start offset")
     ap.add_argument("--checkpoint", default=_def_ckpt, help="Checkpoint jsonl path")
     ap.add_argument("--data-dir", default=_def_data, help="Path to code/output or data dir with orders.csv and models/")
-    ap.add_argument("--extractor", choices=["rules", "llm"], default="rules", help="Extractor engine")
+    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="rules", help="Extractor engine")
     ap.add_argument("--provider", default="groq", help="LLM provider (default: groq)")
     a = ap.parse_args()
 

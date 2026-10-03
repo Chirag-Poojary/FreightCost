@@ -48,6 +48,20 @@ const router = {
       input.value = localStorage.getItem("FREIGHT_API_BASE") || "";
     }
 
+    const resetBtn = document.getElementById("reset-backend-url-btn");
+    if (resetBtn && input) {
+      resetBtn.addEventListener("click", async () => {
+        localStorage.removeItem("FREIGHT_API_BASE");
+        input.value = "https://freightcost.onrender.com";
+        api.setBaseUrl("");
+        resetBtn.disabled = true;
+        resetBtn.textContent = "Resetting...";
+        await this.checkHealth();
+        resetBtn.disabled = false;
+        resetBtn.textContent = "Reset to Default";
+      });
+    }
+
     if (saveBtn && input) {
       saveBtn.addEventListener("click", async () => {
         const val = input.value.trim();

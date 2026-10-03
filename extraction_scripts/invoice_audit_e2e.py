@@ -56,7 +56,7 @@ if _SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SCRIPT_DIR)
 
 # Import OCR and extraction modules
-from ocr_extract import ocr, extract_rules, extract_llm
+from ocr_extract import ocr, extract_llm, extract_vlm
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, "code"))
@@ -731,7 +731,7 @@ if __name__ == "__main__":
     ap.add_argument("--image", help="Path to single invoice image")
     ap.add_argument("--dir", default="phase_a_output/invoices_scanned", help="Invoice directory")
     ap.add_argument("--n", type=int, default=3, help="Number of invoices to process")
-    ap.add_argument("--extractor", choices=["rules", "llm"], default="llm")
+    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="llm")
     ap.add_argument("--new-invoice", action="store_true", help="Simulate live new invoice (bypasses DB, computes via ORS/PPAC/Open-Meteo)")
     ap.add_argument("--benchmark-gate", action="store_true", help="Run full Confidence Gate + Model 2 two-number report")
     args = ap.parse_args()

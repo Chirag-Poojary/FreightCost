@@ -40,7 +40,7 @@ for candidate in [
         sys.path.insert(0, os.path.abspath(candidate))
         break
 
-from ocr_extract import ocr, extract_rules, extract_llm          # existing Phase A
+from ocr_extract import ocr, extract_llm, extract_vlm
 from audit_explanation import explain_rules, explain_llm         # existing Phase C
 from audit_core import confidence_gate, build_model2_features, score_model2, Model1
 from db import Db
@@ -120,22 +120,28 @@ def health():
 
 
 @app.post("/api/audit", response_model=AuditResult)
-async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
+async def audit_invoice(file: UploadFile = File(...), extractor: str = "qwen3-vl",
                         provider: str = "groq"):
     db = get_db()
+
+    canonical_extractor = "qwen3-vl" if extractor in ("qwen3-vl", "vlm", "local") else "groq"
 
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        text = ocr(tmp_path)
+        if canonical_extractor == "qwen3-vl":
+            pred = extract_vlm(tmp_path)
+        else:
+            text = ocr(tmp_path)
+            pred = extract_llm(text, provider="groq")
     finally:
-        os.unlink(tmp_path)
+        if os.path.exists(tmp_path):
+            os.unlink(tmp_path)
 
-    pred = extract_rules(text) if extractor == "rules" else extract_llm(text, provider=provider)
     passed, reason = confidence_gate(pred, db.order_exists, db.vendor_exists)
 
-    result = {"filename": file.filename, "extractor_used": extractor,
+    result = {"filename": file.filename, "extractor_used": canonical_extractor,
              "extracted_fields": pred, "gate_passed": passed, "gate_reason": reason}
 
     if passed:
@@ -154,8 +160,11 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
 
         rec_for_explain = {"passed": True, "predicted_flag": flagged, "proba": proba,
                            "features": features}
-        explanation = (explain_rules(rec_for_explain) if extractor == "rules"
-                       else explain_llm(rec_for_explain, provider))
+        try:
+            explanation = explain_llm(rec_for_explain, provider="groq")
+        except BaseException:
+            from audit_explanation import explain_rules
+            explanation = explain_rules(rec_for_explain)
 
         result.update({
             "order_id": pred["order_id"], "vendor_id": pred["vendor_id"],
@@ -172,19 +181,27 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
         db.bump_vendor_stats(pred["vendor_id"], flagged)
     else:
         rec_for_explain = {"passed": False, "reason": reason}
-        result["explanation"] = explain_rules(rec_for_explain)
+        try:
+            explanation = explain_llm(rec_for_explain, provider="groq")
+        except BaseException:
+            from audit_explanation import explain_rules
+            explanation = explain_rules(rec_for_explain)
+        result["explanation"] = explanation
 
-    db.insert_audit_log({
-        "filename": result["filename"], "extractor_used": extractor,
-        "extracted_fields": result["extracted_fields"], "gate_passed": passed,
-        "gate_reason": reason, "order_id": result.get("order_id"),
-        "vendor_id": result.get("vendor_id"),
-        "model1_predicted_cost": result.get("model1_predicted_cost"),
-        "billed_amount": result.get("billed_amount"),
-        "cost_mismatch": result.get("cost_mismatch"),
-        "model2_proba": result.get("model2_proba"), "flagged": result.get("flagged"),
-        "explanation": result.get("explanation"),
-    })
+    try:
+        db.insert_audit_log({
+            "filename": result["filename"], "extractor_used": canonical_extractor,
+            "extracted_fields": result["extracted_fields"], "gate_passed": passed,
+            "gate_reason": reason, "order_id": result.get("order_id"),
+            "vendor_id": result.get("vendor_id"),
+            "model1_predicted_cost": result.get("model1_predicted_cost"),
+            "billed_amount": result.get("billed_amount"),
+            "cost_mismatch": result.get("cost_mismatch"),
+            "model2_proba": result.get("model2_proba"), "flagged": result.get("flagged"),
+            "explanation": result.get("explanation"),
+        })
+    except Exception:
+        pass
 
     return result
 
@@ -192,21 +209,29 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "rules",
 @app.get("/api/vendors", response_model=list[VendorRisk])
 def vendor_leaderboard():
     db = get_db()
-    rows = db.get_vendor_leaderboard()
+    try:
+        rows = db.get_vendor_leaderboard()
+    except Exception:
+        rows = []
+    if not rows and hasattr(db, "_local") and db._local:
+        rows = db._local.get_vendor_leaderboard()
     return [{"vendor_id": r["vendor_id"],
-            "vendor_name": r.get("vendor_name") or (r.get("vendors") or {}).get("vendor_name"),
-            "total_invoices": r["total_invoices"],
-            "flagged_invoices": r["flagged_invoices"],
-            "risk_score": r["risk_score"]} for r in rows]
+            "vendor_name": r.get("vendor_name") or (r.get("vendors") or {}).get("vendor_name") or r["vendor_id"],
+            "total_invoices": r.get("total_invoices", 0),
+            "flagged_invoices": r.get("flagged_invoices", 0),
+            "risk_score": r.get("risk_score", 0.5)} for r in rows]
 
 
 @app.get("/api/dashboard", response_model=DashboardStats)
 def dashboard(n: int = 300):
     db = get_db()
-    rows = db.get_audit_stats(since_n=n)
+    try:
+        rows = db.get_audit_stats(since_n=n)
+    except Exception:
+        rows = []
     total = len(rows)
-    passed_rows = [r for r in rows if r["gate_passed"]]
-    failed_rows = [r for r in rows if not r["gate_passed"]]
+    passed_rows = [r for r in rows if r.get("gate_passed")]
+    failed_rows = [r for r in rows if not r.get("gate_passed")]
 
     from collections import Counter
     breakdown = Counter((r["gate_reason"] or "").split(":")[0] for r in failed_rows)

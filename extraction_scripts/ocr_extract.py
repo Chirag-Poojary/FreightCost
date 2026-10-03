@@ -90,152 +90,26 @@ def _num(s):
         return None
 
 
-def _amount_near(text, labels, last=False):
-    """Find the amount on the same line as any of `labels` (case-insensitive).
-    Falls back to the next line, since OCR sometimes wraps a wide table row."""
-    lines = text.splitlines()
-    hits = []
-    for i, line in enumerate(lines):
-        if any(lab.lower() in line.lower() for lab in labels):
-            m = re.findall(AMOUNT_RE, line)
-            if m:
-                hits.append(_num(m[-1]))
-            elif i + 1 < len(lines):
-                m2 = re.findall(AMOUNT_RE, lines[i + 1])
-                if m2:
-                    hits.append(_num(m2[-1]))
-    if not hits:
-        return None
-    return hits[-1] if last else hits[0]
-
-
-# OCR reliably confuses these glyphs inside the digit half of coded IDs.
-_DIGIT_FIX = str.maketrans({"O": "0", "o": "0", "l": "1", "I": "1",
-                            "S": "5", "B": "8", "Z": "2"})
-
-# Labels that terminate a value when two fields share one OCR line, e.g.
-# "Origin: Jaipur Destination: Ludhiana" -- without this the value runs on.
-_STOP_LABELS = ["destination", "truck type", "truck", "transit days", "vehicle",
-                "days in transit", "distance", "vendor id", "vendor code",
-                "order no", "order ref", "date", "to ", "from ", "origin"]
-
-
-def _cut_at_next_label(tail):
-    """Trim a captured value at the first following field label."""
-    low = tail.lower()
-    cut = len(tail)
-    for lab in _STOP_LABELS:
-        i = low.find(lab)
-        if 0 < i < cut:
-            cut = i
-    return tail[:cut].strip(" :|.\t")
-
-
-def _value_near(text, labels, pattern=None):
-    """Return the text following any of `labels`. Falls back to the next line,
-    which is how column layouts print a header row above its values."""
-    lines = text.splitlines()
-    for i, line in enumerate(lines):
-        for lab in labels:
-            idx = line.lower().find(lab.lower())
-            if idx == -1:
-                continue
-            tail = _cut_at_next_label(line[idx + len(lab):].lstrip(" :|.\t"))
-            if pattern:
-                m = re.search(pattern, tail)
-                if m:
-                    return m.group(0).strip()
-            elif tail.strip():
-                return tail.strip()
-            if i + 1 < len(lines) and pattern:      # header-above-value layouts
-                m2 = re.search(pattern, lines[i + 1])
-                if m2:
-                    return m2.group(0).strip()
-    return None
-
-
 def extract_rules(text):
-    """Rule-based extraction: regex for coded IDs, label-anchored search,
-    multi-column layout anchors, and line-item arithmetic reconciliation."""
-    out = {}
+    """Rule-based extraction removed. Redirecting to Groq LLM."""
+    return extract_llm(text, provider="groq")
 
-    # 1. Invoice ID (INV + 6 digits, robust to OCR glyph confusion)
-    m_inv = re.search(r"INV\s*([\dOolISBZ]{5,8})", text, re.I)
-    if m_inv:
-        d = re.sub(r"\D", "", m_inv.group(1).translate(_DIGIT_FIX))
-        out["invoice_id"] = f"INV{d[-6:]}" if len(d) >= 6 else None
-    else:
-        out["invoice_id"] = None
+def extract_vlm(image_path, model=None, endpoint=None, backend="api", model_path=None):
+    """Direct multimodal Vision-Language extraction using local Qwen3-VL-4B.
+    Bypasses Tesseract OCR errors by reading image, layout, and tables directly.
+    """
+    try:
+        from extract_qwen3_vl import Qwen3VLExtractor
+        ep = endpoint or os.environ.get("LOCAL_VLM_URL", "http://localhost:11434/v1")
+        mdl = model or os.environ.get("LOCAL_VLM_MODEL", "qwen3-vl:4b")
+        extractor = Qwen3VLExtractor(endpoint=ep, model_name=mdl, backend=backend, model_path=model_path)
+        return extractor.extract_from_image(image_path)
+    except Exception as e:
+        print(f"[VLM Fallback] Failed to run direct VLM extraction ({e}), falling back to OCR + Groq LLM")
+        text = ocr(image_path)
+        return extract_llm(text, provider="groq")
 
-    # 2. Order ID (ORD + 6 digits, handles OCR D/O confusion)
-    m_ord = re.search(r"ORD\s*([\dOolISBZ]{5,8})", text, re.I)
-    if m_ord:
-        d = re.sub(r"\D", "", m_ord.group(1).translate(_DIGIT_FIX))
-        if len(d) >= 6:
-            out["order_id"] = f"ORD{d[-6:]}"
-        elif len(d) == 5:
-            out["order_id"] = f"ORD0{d}"
-        else:
-            out["order_id"] = None
-    else:
-        out["order_id"] = None
-
-    # 3. Vendor ID (VEN + 3 digits, normalizes kerning and extra zeroes)
-    m_ven = re.search(r"VEN\s*([\dOolISBZ]{2,5})", text, re.I)
-    if m_ven:
-        d = re.sub(r"\D", "", m_ven.group(1).translate(_DIGIT_FIX))
-        out["vendor_id"] = f"VEN{int(d):03d}" if d else None
-    else:
-        out["vendor_id"] = None
-
-    # 4. Invoice Date
-    m_date = re.search(r"\b(\d{2}-\d{2}-\d{4})\b", text)
-    out["invoice_date"] = m_date.group(1) if m_date else None
-
-    # 5. Truck Type
-    m_truck = re.search(r"\b(6|10|12)\s*-?\s*wheeler\b", text, re.I)
-    out["truck_type"] = f"{m_truck.group(1)}-wheeler" if m_truck else None
-
-    # 6. Origin, Destination, Vehicle, Transit Days (Multi-column layout anchor fallback)
-    m_modern = re.search(
-        r"([A-Za-z]+)\s+([A-Za-z]+)\s+((?:6|10|12)\s*-?\s*wheeler)\s+([\d.]+)",
-        text, re.I)
-    if m_modern:
-        out["origin"] = m_modern.group(1).title()
-        out["destination"] = m_modern.group(2).title()
-        out["actual_days"] = m_modern.group(4)
-        if not out.get("truck_type"):
-            m_t = re.search(r"(6|10|12)", m_modern.group(3))
-            if m_t:
-                out["truck_type"] = f"{m_t.group(1)}-wheeler"
-    else:
-        out["actual_days"] = _value_near(
-            text, ["Transit Days", "DAYS IN TRANSIT", "TRANSIT DAYS"], r"[\d.]+")
-        out["origin"] = _value_near(text, ["Origin", "FROM"], r"[A-Za-z ]+")
-        out["destination"] = _value_near(text, ["Destination", "\nTO ", "TO "], r"[A-Za-z ]+")
-
-    # 7. Line Item Charges
-    out["freight_base"] = _amount_near(text, ["Base Freight", "FREIGHT CHARGES", "Base freight"])
-    out["detention"] = _amount_near(text, ["Detention"])
-    out["toll"] = _amount_near(text, ["Toll", "FASTag"])
-
-    # 8. Total Amount with Line-Item Reconciliation
-    tot = _amount_near(text, ["TOTAL PAYABLE", "GRAND TOTAL", "TOTAL"], last=True)
-    if out["freight_base"] is not None:
-        parts_sum = round(out["freight_base"] + (out["detention"] or 0.0) + (out["toll"] or 0.0), 2)
-        if tot is None or abs(tot - parts_sum) > max(2.0, parts_sum * 0.02):
-            tot = parts_sum
-    out["total"] = tot
-
-    for k in ("origin", "destination"):
-        if out.get(k):
-            out[k] = out[k].strip().title()
-    return out
-
-
-
-LLM_PROMPT = """You are extracting structured data from OCR text of an Indian \
-road-freight invoice. The OCR output may contain character errors.
+LLM_PROMPT = """You are extracting structured data from OCR text of an Indian road-freight invoice. The OCR output may contain character errors.
 
 Return ONLY a JSON object, no prose and no markdown fences, with exactly these keys:
 invoice_id, order_id, vendor_id, invoice_date, origin, destination, truck_type,
@@ -254,35 +128,11 @@ OCR TEXT:
 {text}
 ---"""
 
-
-# Any OpenAI-compatible provider works. All of these have a permanent free
-# tier and issue keys without a credit card (verified 2026). Pick with
-# --provider; the key comes from the matching env var.
 PROVIDERS = {
-    "groq": {          # 30 RPM / 14,400 RPD, very fast -- best default here
+    "groq": {
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "key_env": "GROQ_API_KEY",
         "model": "qwen/qwen3.8-27b",
-    },
-    "gemini": {        # free tier, strongest model quality of the free options
-        "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
-        "key_env": "GEMINI_API_KEY",
-        "model": "gemini-2.0-flash",
-    },
-    "openrouter": {    # widest model choice through one key
-        "url": "https://openrouter.ai/api/v1/chat/completions",
-        "key_env": "OPENROUTER_API_KEY",
-        "model": "meta-llama/llama-3.3-70b-instruct:free",
-    },
-    "cerebras": {
-        "url": "https://api.cerebras.ai/v1/chat/completions",
-        "key_env": "CEREBRAS_API_KEY",
-        "model": "llama-3.3-70b",
-    },
-    "anthropic": {     # paid; kept for parity if a key is available
-        "url": "https://api.anthropic.com/v1/messages",
-        "key_env": "ANTHROPIC_API_KEY",
-        "model": "claude-sonnet-4-6",
     },
 }
 

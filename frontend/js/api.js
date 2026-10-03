@@ -3,15 +3,25 @@
  * All HTTP communication with the FastAPI backend flows through this file.
  */
 
+const PROD_API_BASE = "https://freightcost.onrender.com";
+
 // Dynamic API base resolution
 function getApiBase() {
   const custom = localStorage.getItem("FREIGHT_API_BASE");
   if (custom && custom.trim().startsWith("http")) {
     return custom.trim().replace(/\/+$/, "");
   }
-  return window.location.origin && window.location.origin.startsWith("http")
-    ? window.location.origin
-    : "http://localhost:8000";
+  const isLocal = typeof window !== "undefined" && window.location && (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1" ||
+    window.location.port === "8000" ||
+    window.location.port === "3000" ||
+    window.location.port === "5500"
+  );
+  if (isLocal) {
+    return "http://localhost:8000";
+  }
+  return PROD_API_BASE;
 }
 
 function setApiBase(url) {
@@ -51,7 +61,7 @@ const api = {
   /**
    * Post an invoice file to the audit pipeline
    */
-  audit: (file, extractor = "rules", provider = "groq") => {
+  audit: (file, extractor = "qwen3-vl", provider = "groq") => {
     const form = new FormData();
     form.append("file", file);
     return apiCall(
