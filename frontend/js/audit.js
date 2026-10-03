@@ -177,7 +177,7 @@ const auditPage = {
     this.auditBtn.disabled = isLoading;
     if (isLoading) {
       this.auditSpinner.classList.remove("hidden");
-      this.auditBtnText.textContent = "Processing LLM Extraction & Models...";
+      this.auditBtnText.textContent = "Processing Extraction & Models...";
     } else {
       this.auditSpinner.classList.add("hidden");
       this.auditBtnText.textContent = "Audit Invoice";

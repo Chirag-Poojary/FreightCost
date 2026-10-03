@@ -10,7 +10,8 @@
 
   <title>FreightCost AI — Automated Invoice Audit & Risk Scoring</title>
 
-  <meta name="description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta name="description"
+    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
 
   <meta name="robots" content="index, follow">
 
@@ -28,7 +29,8 @@
 
   <meta property="og:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
 
-  <meta property="og:description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta property="og:description"
+    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
 
   <meta property="og:image" content="https://freightcost-ai.vercel.app/og-preview.png">
 
@@ -42,7 +44,8 @@
 
   <meta name="twitter:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
 
-  <meta name="twitter:description" content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
+  <meta name="twitter:description"
+    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
 
   <meta name="twitter:image" content="https://freightcost-ai.vercel.app/og-preview.png">
 
@@ -126,7 +129,8 @@
 
 
 
-      <div class="nav-status" id="health-status-container" style="cursor: pointer;" title="Click to view backend connection settings">
+      <div class="nav-status" id="health-status-container" style="cursor: pointer;"
+        title="Click to view backend connection settings">
 
         <span class="status-dot online" id="health-dot"></span>
 
@@ -148,7 +152,8 @@
 
     <!-- Backend Connection / Offline Guidance Banner -->
 
-    <div id="backend-offline-banner" class="alert-banner alert-danger hidden" style="margin-bottom: calc(var(--space-unit) * 3); border-left: 4px solid var(--color-flagged);">
+    <div id="backend-offline-banner" class="alert-banner alert-danger hidden"
+      style="margin-bottom: calc(var(--space-unit) * 3); border-left: 4px solid var(--color-flagged);">
 
       <div style="flex: 1;">
 
@@ -156,27 +161,34 @@
 
           <strong style="color: #fff;">Backend Service Offline / Unreachable</strong>
 
-          <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-flagged-text); font-weight: 700; letter-spacing: 0.05em;">Action Required</span>
+          <span
+            style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-flagged-text); font-weight: 700; letter-spacing: 0.05em;">Action
+            Required</span>
 
         </div>
 
         <p style="font-size: 0.88rem; color: var(--color-text-dim); margin-bottom: 8px;">
 
-          The web client attempted to contact the FastAPI audit API at <code id="current-api-base" style="font-family: var(--font-mono); color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"></code> but received no response.
+          The web client attempted to contact the FastAPI audit API at <code id="current-api-base"
+            style="font-family: var(--font-mono); color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"></code>
+          but received no response.
 
         </p>
 
         <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: 10px;">
 
-          To connect this Vercel deployment to your backend, enter your deployed backend URL (e.g. Render, Railway) below:
+          To connect this Vercel deployment to your backend, enter your deployed backend URL (e.g. Render, Railway)
+          below:
 
         </p>
 
         <div style="display: flex; gap: 8px; max-width: 540px;">
 
-          <input type="url" id="backend-url-input" class="form-input" placeholder="https://your-backend.onrender.com" style="padding: 6px 12px; font-size: 0.88rem;">
+          <input type="url" id="backend-url-input" class="form-input" placeholder="https://your-backend.onrender.com"
+            style="padding: 6px 12px; font-size: 0.88rem;">
 
-          <button type="button" id="save-backend-url-btn" class="btn btn-primary btn-sm" style="white-space: nowrap;">Connect</button>
+          <button type="button" id="save-backend-url-btn" class="btn btn-primary btn-sm"
+            style="white-space: nowrap;">Connect</button>
 
         </div>
 
@@ -198,7 +210,8 @@
 
         <h1>Invoice Audit & Risk Assessment</h1>
 
-        <p>Upload a carrier invoice image for automated OCR text extraction, referential gate verification, predictive cost estimation, and causal fraud detection.</p>
+        <p>Upload a carrier invoice image for automated OCR text extraction, referential gate verification, predictive
+          cost estimation, and causal fraud detection.</p>
 
       </header>
 
@@ -267,41 +280,95 @@
 
 
         <!-- Extractor Mode Configuration -->
+
         <div class="form-group" style="margin-top: calc(var(--space-unit) * 2.5);">
+
           <label class="form-label">Extraction Engine</label>
+
           <div class="radio-group">
+
             <label class="radio-card active">
-              <input type="radio" name="extractor" value="qwen3-vl" checked>
+
+              <input type="radio" name="extractor" value="rules" checked>
+
               <div>
-                <div style="font-weight: 600;">Qwen3-VL-4B (Local Vision LLM)</div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Multimodal VLM offloaded to local GPU via Ollama</div>
+
+                <div style="font-weight: 600;">Rule-Based (Regex)</div>
+
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Fast, deterministic pattern matching</div>
+
               </div>
+
             </label>
+
             <label class="radio-card">
-              <input type="radio" name="extractor" value="groq">
+
+              <input type="radio" name="extractor" value="llm">
+
               <div>
-                <div style="font-weight: 600;">Groq Cloud LLM</div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Qwen3.8-27B high-speed inference on Groq LPU</div>
+
+                <div style="font-weight: 600;">LLM Extractor</div>
+
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Groq / Cloud LPU fallback parser</div>
+
               </div>
+
             </label>
+
           </div>
+
         </div>
 
-        <button type="button" id="audit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 2);" disabled>
+
+
+        <!-- LLM Provider Select (Conditional) -->
+
+        <div id="llm-provider-container" class="form-group hidden">
+
+          <label class="form-label" for="llm-provider">LLM Provider</label>
+
+          <select id="llm-provider" class="form-select">
+
+            <option value="groq" selected>Groq Cloud (Fast LPU)</option>
+
+            <option value="gemini">Google Gemini</option>
+
+            <option value="openrouter">OpenRouter</option>
+
+            <option value="cerebras">Cerebras</option>
+
+          </select>
+
+        </div>
+
+
+
+        <button type="button" id="audit-btn" class="btn btn-primary"
+          style="width: 100%; margin-top: calc(var(--space-unit) * 1);" disabled>
+
           <span id="audit-spinner" class="spinner hidden"></span>
+
           <span id="audit-btn-text">Audit Invoice</span>
+
         </button>
+
       </div>
 
+
+
       <!-- Audit Results Panel (Hidden initially) -->
+
       <div id="audit-results-card" class="card hidden">
+
         <div class="card-title">
+
           <span>Audit Verdict & Scoring</span>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <span id="extractor-used-badge" class="badge badge-neutral" style="font-size: 0.75rem;"></span>
-            <span id="verdict-badge" class="badge badge-neutral">No invoice audited yet</span>
-          </div>
+
+          <span id="verdict-badge" class="badge badge-neutral">No invoice audited yet</span>
+
         </div>
+
+
 
         <!-- Gate Status / Rejection Box -->
 
@@ -439,7 +506,8 @@
 
       <div class="card" style="padding: calc(var(--space-unit) * 2);">
 
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: calc(var(--space-unit) * 2);">
+        <div
+          style="display: flex; align-items: center; justify-content: space-between; gap: calc(var(--space-unit) * 2);">
 
           <div style="display: flex; align-items: center; gap: calc(var(--space-unit) * 1.5);">
 
@@ -449,7 +517,8 @@
 
             </label>
 
-            <input type="number" id="dash-n-input" class="form-input" value="300" min="10" max="5000" style="width: 110px; padding: 6px 10px;">
+            <input type="number" id="dash-n-input" class="form-input" value="300" min="10" max="5000"
+              style="width: 110px; padding: 6px 10px;">
 
           </div>
 
@@ -559,11 +628,14 @@
 
       <div class="card">
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: calc(var(--space-unit) * 2); gap: calc(var(--space-unit) * 2);">
+        <div
+          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: calc(var(--space-unit) * 2); gap: calc(var(--space-unit) * 2);">
 
-          <input type="text" id="vendor-search-input" class="form-input" placeholder="Search carrier by name or ID (e.g. VEN001, Maruti)..." style="max-width: 420px;">
+          <input type="text" id="vendor-search-input" class="form-input"
+            placeholder="Search carrier by name or ID (e.g. VEN001, Maruti)..." style="max-width: 420px;">
 
-          <span id="vendor-count-label" style="font-size: 0.85rem; color: var(--color-text-dim);">Showing 0 vendors</span>
+          <span id="vendor-count-label" style="font-size: 0.85rem; color: var(--color-text-dim);">Showing 0
+            vendors</span>
 
         </div>
 
@@ -613,7 +685,8 @@
 
         <p class="disclaimer-note">
 
-          * Risk score reflects causal Laplace smoothing: <code>(flagged + 2 &times; 0.06) / (total + 2)</code>. Vendors with 0 audits default to the empirical prior (6.0%).
+          * Risk score reflects causal Laplace smoothing: <code>(flagged + 2 &times; 0.06) / (total + 2)</code>. Vendors
+          with 0 audits default to the empirical prior (6.0%).
 
         </p>
 
@@ -635,7 +708,8 @@
 
         <h1>Pre-Shipment Freight Estimator</h1>
 
-        <p>Calculate fair market baseline freight costs (Model 1) prior to shipment booking based on corridor, payload, and operational conditions.</p>
+        <p>Calculate fair market baseline freight costs (Model 1) prior to shipment booking based on corridor, payload,
+          and operational conditions.</p>
 
       </header>
 
@@ -719,7 +793,8 @@
 
               <label class="form-label" for="quote-weight">Billable Weight (kg)</label>
 
-              <input type="number" id="quote-weight" class="form-input" value="12000" min="100" max="60000" step="100" required>
+              <input type="number" id="quote-weight" class="form-input" value="12000" min="100" max="60000" step="100"
+                required>
 
             </div>
 
@@ -727,7 +802,8 @@
 
               <label class="form-label" for="quote-distance">Distance (km)</label>
 
-              <input type="number" id="quote-distance" class="form-input" value="850" min="10" max="4000" step="10" required>
+              <input type="number" id="quote-distance" class="form-input" value="850" min="10" max="4000" step="10"
+                required>
 
             </div>
 
@@ -735,7 +811,8 @@
 
               <label class="form-label" for="quote-fuel-price">Expected Fuel Price (₹/L)</label>
 
-              <input type="number" id="quote-fuel-price" class="form-input" value="94.5" min="50" max="150" step="0.1" required>
+              <input type="number" id="quote-fuel-price" class="form-input" value="94.5" min="50" max="150" step="0.1"
+                required>
 
             </div>
 
@@ -749,7 +826,8 @@
 
               <label class="form-label" for="quote-ideal-days">Ideal Transit Days</label>
 
-              <input type="number" id="quote-ideal-days" class="form-input" value="2.5" min="0.5" max="30" step="0.1" required>
+              <input type="number" id="quote-ideal-days" class="form-input" value="2.5" min="0.5" max="30" step="0.1"
+                required>
 
             </div>
 
@@ -757,7 +835,8 @@
 
               <label class="form-label" for="quote-quoted-days">Quoted Transit Days</label>
 
-              <input type="number" id="quote-quoted-days" class="form-input" value="3.5" min="0.5" max="30" step="0.1" required>
+              <input type="number" id="quote-quoted-days" class="form-input" value="3.5" min="0.5" max="30" step="0.1"
+                required>
 
             </div>
 
@@ -765,7 +844,8 @@
 
               <label class="form-label" for="quote-weather">Weather Friction Score (0-1)</label>
 
-              <input type="number" id="quote-weather" class="form-input" value="0.3" min="0" max="1" step="0.05" required>
+              <input type="number" id="quote-weather" class="form-input" value="0.3" min="0" max="1" step="0.05"
+                required>
 
             </div>
 
@@ -773,7 +853,8 @@
 
 
 
-          <button type="submit" id="quote-submit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 1);">
+          <button type="submit" id="quote-submit-btn" class="btn btn-primary"
+            style="width: 100%; margin-top: calc(var(--space-unit) * 1);">
 
             <span id="quote-spinner" class="spinner hidden"></span>
 
@@ -793,28 +874,34 @@
 
         <div style="text-align: center; padding: calc(var(--space-unit) * 2) 0;">
 
-          <div style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
+          <div
+            style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
 
             Predicted Fair Market Cost
 
           </div>
 
-          <div id="quote-cost-display" style="font-size: 2.8rem; font-weight: 800; color: #60a5fa; letter-spacing: -0.03em;">
+          <div id="quote-cost-display"
+            style="font-size: 2.8rem; font-weight: 800; color: #60a5fa; letter-spacing: -0.03em;">
 
             ₹0.00
 
           </div>
-            <div id="quote-interval-display" style="font-size: 1.05rem; font-weight: 600; color: #93c5fd; margin-top: 6px;"></div>
-            <div id="quote-drivers-card" class="hidden" style="margin-top: 20px; text-align: left; background: rgba(30, 41, 59, 0.7); border: 1px solid var(--color-border); border-radius: 8px; padding: 14px 18px;">
-              <div style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
-                Top Cost Drivers (TreeSHAP Attribution)
-              </div>
-              <div id="quote-drivers-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          <div id="quote-interval-display"
+            style="font-size: 1.05rem; font-weight: 600; color: #93c5fd; margin-top: 6px;"></div>
+          <div id="quote-drivers-card" class="hidden"
+            style="margin-top: 20px; text-align: left; background: rgba(30, 41, 59, 0.7); border: 1px solid var(--color-border); border-radius: 8px; padding: 14px 18px;">
+            <div
+              style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
+              Top Cost Drivers (TreeSHAP Attribution)
             </div>
+            <div id="quote-drivers-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+          </div>
 
           <p style="color: var(--color-text-dim); font-size: 0.88rem; margin-top: 10px;">
 
-            Calculated via Model 1 (XGBoost Regressor) trained on historical corridor fuel, weight, and vehicle attributes.
+            Calculated via Model 1 (XGBoost Regressor) trained on historical corridor fuel, weight, and vehicle
+            attributes.
 
           </p>
 
@@ -847,4 +934,3 @@
 </body>
 
 </html>
-

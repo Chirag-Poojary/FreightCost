@@ -53,7 +53,7 @@ for p in [_SCRIPT_DIR, os.path.join(_BUNDLE_DIR, "extraction_scripts"), os.path.
     if os.path.exists(p) and p not in sys.path:
         sys.path.insert(0, p)
 
-from ocr_extract import ocr, extract_llm, extract_vlm, _num  # reuse the tested extractor
+from ocr_extract import ocr, extract_rules, extract_llm, _num  # reuse the tested extractor
 
 # ------------------------------------------------------------- the 4-tier gate
 CRITICAL = ["order_id", "vendor_id", "total", "actual_days"]
@@ -222,11 +222,9 @@ def main(indir, n, data_dir, start, checkpoint, extractor, provider):
             if entry["image"] in done_images:
                 continue
             img_path = os.path.join(base_dir, entry["image"])
-            if extractor in ("qwen3-vl", "vlm"):
-                pred = extract_vlm(img_path)
-            else:
-                text = ocr(img_path)
-                pred = extract_llm(text, provider=provider)
+            text = ocr(img_path)
+            pred = (extract_rules(text) if extractor == "rules"
+                    else extract_llm(text, provider=provider))
             passed, reason = confidence_gate(pred, orders, vendors)
 
             if not passed:
@@ -314,8 +312,11 @@ def report(results, total):
             print(f"    - {t:<22} {caught}/{total_t} ({caught/total_t:.1%})")
     print("=" * 65)
     print("\nNote: this run used the {} extractor.".format(
-        "QWEN3-VL (local multimodal vision LLM)" if RUN_EXTRACTOR in ("qwen3-vl", "vlm")
-        else f"GROQ CLOUD LLM ({RUN_PROVIDER})"))
+        "RULE-BASED (no API key dependency)" if RUN_EXTRACTOR == "rules"
+        else f"LLM ({RUN_PROVIDER})"))
+    if RUN_EXTRACTOR == "rules":
+        print("To reproduce with the LLM extractor, rotate GROQ_API_KEY first (see")
+        print("the security note), then rerun with --extractor llm --provider groq.")
 
 
 if __name__ == "__main__":
@@ -331,7 +332,7 @@ if __name__ == "__main__":
     ap.add_argument("--start", type=int, default=0, help="Start offset")
     ap.add_argument("--checkpoint", default=_def_ckpt, help="Checkpoint jsonl path")
     ap.add_argument("--data-dir", default=_def_data, help="Path to code/output or data dir with orders.csv and models/")
-    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="qwen3-vl", help="Extractor engine: 'qwen3-vl' or 'groq'")
+    ap.add_argument("--extractor", choices=["rules", "llm"], default="rules", help="Extractor engine")
     ap.add_argument("--provider", default="groq", help="LLM provider (default: groq)")
     a = ap.parse_args()
 

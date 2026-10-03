@@ -56,7 +56,7 @@ if _SCRIPT_DIR not in sys.path:
     sys.path.insert(0, _SCRIPT_DIR)
 
 # Import OCR and extraction modules
-from ocr_extract import ocr, extract_llm, extract_vlm
+from ocr_extract import ocr, extract_rules, extract_llm
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(BASE_DIR, "code"))
@@ -416,11 +416,11 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Invoice image not found: {image_path}")
 
-    # Step 1: Extraction
-    if extractor in ("qwen3-vl", "vlm"):
-        extracted = extract_vlm(image_path, model=model or "Qwen3-VL-4B-Instruct")
+    # Step 1: OCR & Extraction
+    raw_ocr = ocr(image_path)
+    if extractor == "rules":
+        extracted = extract_rules(raw_ocr)
     else:
-        raw_ocr = ocr(image_path)
         extracted = extract_llm(raw_ocr, provider=provider, model=model)
 
     inv_id = extracted.get("invoice_id")
@@ -730,8 +730,9 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="End-to-End Freight Invoice Audit Pipeline")
     ap.add_argument("--image", help="Path to single invoice image")
     ap.add_argument("--dir", default="phase_a_output/invoices_scanned", help="Invoice directory")
-    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="qwen3-vl",
-                    help="Extractor engine: 'qwen3-vl' (local VLM) or 'groq' (cloud LLM)")
+    ap.add_argument("--n", type=int, default=3, help="Number of invoices to process")
+    ap.add_argument("--extractor", choices=["rules", "llm"], default="llm")
+    ap.add_argument("--new-invoice", action="store_true", help="Simulate live new invoice (bypasses DB, computes via ORS/PPAC/Open-Meteo)")
     ap.add_argument("--benchmark-gate", action="store_true", help="Run full Confidence Gate + Model 2 two-number report")
     args = ap.parse_args()
 

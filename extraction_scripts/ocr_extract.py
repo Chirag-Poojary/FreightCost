@@ -1,16 +1,23 @@
 """
-PHASE A / EXTRACTION -- Multimodal VLM and Cloud LLM Invoice Field Extraction.
+PHASE A / STEPS 2-4 -- OCR, structured field extraction, and accuracy scoring.
 
-Two Extraction Engines Supported:
-1. Local Multimodal VLM: Qwen3-VL-4B-Instruct via local Ollama daemon (direct image -> JSON)
-2. Cloud LLM: Groq (Qwen3.8-27B) via Tesseract OCR + Fast LPU JSON extraction
+Pipeline:   invoice image  ->  Tesseract OCR  ->  field extraction  ->  score
+                                                   |
+                                    rule-based (default, offline, free)
+                                    or LLM-based (--extractor llm)
 
-Scoring is per-field exact match against ground truth, with numeric fields
-compared within tolerance.
+Having both extractors is deliberate: the rule-based path is the baseline the
+LLM must beat, which turns "we added an LLM" into a measurable claim. It also
+means the pipeline still runs with no API key and no network.
+
+Scoring is per-field exact match against the ground-truth JSON written by
+render_invoices.py, with numeric fields compared within a small tolerance
+(OCR routinely reads 0/O and 1/l interchangeably; a rupee value is correct if
+it round-trips to the same number, not the same string).
 
 Usage:
-  python ocr_extract.py --indir ../phase_a_output/invoices_scanned --extractor qwen3-vl
-  python ocr_extract.py --indir ../phase_a_output/invoices_scanned --extractor groq
+  python ocr_extract.py --indir ../phase_a_output/invoices_scanned
+  python ocr_extract.py --indir ../phase_a_output/invoices_scanned --extractor llm
 """
 import argparse
 import json
@@ -83,34 +90,147 @@ def _num(s):
         return None
 
 
+def _amount_near(text, labels, last=False):
+    """Find the amount on the same line as any of `labels` (case-insensitive).
+    Falls back to the next line, since OCR sometimes wraps a wide table row."""
+    lines = text.splitlines()
+    hits = []
+    for i, line in enumerate(lines):
+        if any(lab.lower() in line.lower() for lab in labels):
+            m = re.findall(AMOUNT_RE, line)
+            if m:
+                hits.append(_num(m[-1]))
+            elif i + 1 < len(lines):
+                m2 = re.findall(AMOUNT_RE, lines[i + 1])
+                if m2:
+                    hits.append(_num(m2[-1]))
+    if not hits:
+        return None
+    return hits[-1] if last else hits[0]
+
+
 # OCR reliably confuses these glyphs inside the digit half of coded IDs.
 _DIGIT_FIX = str.maketrans({"O": "0", "o": "0", "l": "1", "I": "1",
                             "S": "5", "B": "8", "Z": "2"})
 
+# Labels that terminate a value when two fields share one OCR line, e.g.
+# "Origin: Jaipur Destination: Ludhiana" -- without this the value runs on.
+_STOP_LABELS = ["destination", "truck type", "truck", "transit days", "vehicle",
+                "days in transit", "distance", "vendor id", "vendor code",
+                "order no", "order ref", "date", "to ", "from ", "origin"]
+
+
+def _cut_at_next_label(tail):
+    """Trim a captured value at the first following field label."""
+    low = tail.lower()
+    cut = len(tail)
+    for lab in _STOP_LABELS:
+        i = low.find(lab)
+        if 0 < i < cut:
+            cut = i
+    return tail[:cut].strip(" :|.\t")
+
+
+def _value_near(text, labels, pattern=None):
+    """Return the text following any of `labels`. Falls back to the next line,
+    which is how column layouts print a header row above its values."""
+    lines = text.splitlines()
+    for i, line in enumerate(lines):
+        for lab in labels:
+            idx = line.lower().find(lab.lower())
+            if idx == -1:
+                continue
+            tail = _cut_at_next_label(line[idx + len(lab):].lstrip(" :|.\t"))
+            if pattern:
+                m = re.search(pattern, tail)
+                if m:
+                    return m.group(0).strip()
+            elif tail.strip():
+                return tail.strip()
+            if i + 1 < len(lines) and pattern:      # header-above-value layouts
+                m2 = re.search(pattern, lines[i + 1])
+                if m2:
+                    return m2.group(0).strip()
+    return None
+
 
 def extract_rules(text):
-    """Rule-based extraction has been removed from this project.
-    Redirecting to Groq LLM extraction.
-    """
-    return extract_llm(text, provider="groq")
+    """Rule-based extraction: regex for coded IDs, label-anchored search,
+    multi-column layout anchors, and line-item arithmetic reconciliation."""
+    out = {}
 
+    # 1. Invoice ID (INV + 6 digits, robust to OCR glyph confusion)
+    m_inv = re.search(r"INV\s*([\dOolISBZ]{5,8})", text, re.I)
+    if m_inv:
+        d = re.sub(r"\D", "", m_inv.group(1).translate(_DIGIT_FIX))
+        out["invoice_id"] = f"INV{d[-6:]}" if len(d) >= 6 else None
+    else:
+        out["invoice_id"] = None
 
-def extract_vlm(image_path, model=None, endpoint=None, backend="api", model_path=None):
-    """Direct multimodal Vision-Language extraction using local Qwen3-VL-4B.
-    Bypasses Tesseract OCR errors by reading image, layout, and tables directly.
-    """
-    try:
-        from extract_qwen3_vl import Qwen3VLExtractor
-        ep = endpoint or os.environ.get("LOCAL_VLM_URL", "http://localhost:11434/v1")
-        mdl = model or os.environ.get("LOCAL_VLM_MODEL", "qwen3-vl:4b")
-        extractor = Qwen3VLExtractor(endpoint=ep, model_name=mdl, backend=backend, model_path=model_path)
-        return extractor.extract_from_image(image_path)
-    except Exception as e:
-        print(f"[VLM Fallback] Failed to run direct VLM extraction ({e}), falling back to OCR + Groq LLM")
-        text = ocr(image_path)
-        return extract_llm(text, provider="groq")
+    # 2. Order ID (ORD + 6 digits, handles OCR D/O confusion)
+    m_ord = re.search(r"ORD\s*([\dOolISBZ]{5,8})", text, re.I)
+    if m_ord:
+        d = re.sub(r"\D", "", m_ord.group(1).translate(_DIGIT_FIX))
+        if len(d) >= 6:
+            out["order_id"] = f"ORD{d[-6:]}"
+        elif len(d) == 5:
+            out["order_id"] = f"ORD0{d}"
+        else:
+            out["order_id"] = None
+    else:
+        out["order_id"] = None
 
+    # 3. Vendor ID (VEN + 3 digits, normalizes kerning and extra zeroes)
+    m_ven = re.search(r"VEN\s*([\dOolISBZ]{2,5})", text, re.I)
+    if m_ven:
+        d = re.sub(r"\D", "", m_ven.group(1).translate(_DIGIT_FIX))
+        out["vendor_id"] = f"VEN{int(d):03d}" if d else None
+    else:
+        out["vendor_id"] = None
 
+    # 4. Invoice Date
+    m_date = re.search(r"\b(\d{2}-\d{2}-\d{4})\b", text)
+    out["invoice_date"] = m_date.group(1) if m_date else None
+
+    # 5. Truck Type
+    m_truck = re.search(r"\b(6|10|12)\s*-?\s*wheeler\b", text, re.I)
+    out["truck_type"] = f"{m_truck.group(1)}-wheeler" if m_truck else None
+
+    # 6. Origin, Destination, Vehicle, Transit Days (Multi-column layout anchor fallback)
+    m_modern = re.search(
+        r"([A-Za-z]+)\s+([A-Za-z]+)\s+((?:6|10|12)\s*-?\s*wheeler)\s+([\d.]+)",
+        text, re.I)
+    if m_modern:
+        out["origin"] = m_modern.group(1).title()
+        out["destination"] = m_modern.group(2).title()
+        out["actual_days"] = m_modern.group(4)
+        if not out.get("truck_type"):
+            m_t = re.search(r"(6|10|12)", m_modern.group(3))
+            if m_t:
+                out["truck_type"] = f"{m_t.group(1)}-wheeler"
+    else:
+        out["actual_days"] = _value_near(
+            text, ["Transit Days", "DAYS IN TRANSIT", "TRANSIT DAYS"], r"[\d.]+")
+        out["origin"] = _value_near(text, ["Origin", "FROM"], r"[A-Za-z ]+")
+        out["destination"] = _value_near(text, ["Destination", "\nTO ", "TO "], r"[A-Za-z ]+")
+
+    # 7. Line Item Charges
+    out["freight_base"] = _amount_near(text, ["Base Freight", "FREIGHT CHARGES", "Base freight"])
+    out["detention"] = _amount_near(text, ["Detention"])
+    out["toll"] = _amount_near(text, ["Toll", "FASTag"])
+
+    # 8. Total Amount with Line-Item Reconciliation
+    tot = _amount_near(text, ["TOTAL PAYABLE", "GRAND TOTAL", "TOTAL"], last=True)
+    if out["freight_base"] is not None:
+        parts_sum = round(out["freight_base"] + (out["detention"] or 0.0) + (out["toll"] or 0.0), 2)
+        if tot is None or abs(tot - parts_sum) > max(2.0, parts_sum * 0.02):
+            tot = parts_sum
+    out["total"] = tot
+
+    for k in ("origin", "destination"):
+        if out.get(k):
+            out[k] = out[k].strip().title()
+    return out
 
 
 
@@ -269,19 +389,19 @@ def main(indir, extractor, limit, outfile, provider, model):
     manifest = json.load(open(os.path.join(indir, "ground_truth.json")))
     if limit:
         manifest = manifest[:limit]
-    tag = extractor if extractor == "qwen3-vl" else f"llm:{provider}"
-    print(f"Extraction ({tag}) on {len(manifest)} invoices from {indir}")
+    tag = extractor if extractor == "rules" else f"llm:{provider}"
+    print(f"OCR + extraction ({tag}) on {len(manifest)} invoices from {indir}")
 
     rows, records = [], []
     for i, entry in enumerate(manifest, 1):
         path = os.path.join(indir, entry["image"])
-        if extractor in ("qwen3-vl", "vlm", "local"):
-            pred = extract_vlm(path, model=model or "qwen3-vl:4b")
+        text = ocr(path)
+        if extractor == "rules":
+            pred = extract_rules(text)
         else:
-            text = ocr(path)
-            pred = extract_llm(text, provider="groq", model=model)
+            pred = extract_llm(text, provider=provider, model=model)
             import time
-            time.sleep(1.0)
+            time.sleep(2.2)
         truth = entry["ground_truth"]
 
         res = {f: match(f, pred.get(f), truth.get(f)) for f in TARGET_FIELDS}
@@ -319,14 +439,13 @@ def main(indir, extractor, limit, outfile, provider, model):
 
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(description="Invoice Field Extraction (Qwen3-VL & Groq LLM)")
+    ap = argparse.ArgumentParser()
     ap.add_argument("--indir", default="../phase_a_output/invoices_scanned")
-    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="qwen3-vl",
-                    help="extraction engine: 'qwen3-vl' (local vision model) or 'groq' (cloud LLM)")
-    ap.add_argument("--provider", default="groq", help="cloud provider (default: groq)")
-    ap.add_argument("--model", default=None, help="override default model")
+    ap.add_argument("--extractor", choices=["rules", "llm"], default="rules")
+    ap.add_argument("--provider", choices=list(PROVIDERS), default="groq",
+                    help="free-tier LLM provider for --extractor llm")
+    ap.add_argument("--model", default=None, help="override provider default model")
     ap.add_argument("--limit", type=int, default=None)
     ap.add_argument("--out", default="extraction_results.json")
     a = ap.parse_args()
     main(a.indir, a.extractor, a.limit, a.out, a.provider, a.model)
-

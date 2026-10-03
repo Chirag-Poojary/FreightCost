@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://freightcost.onrender.com"
+      "destination": "https://freightcost.onrender.com/api/:path*"
     }
   ]
 }
