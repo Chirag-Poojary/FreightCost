@@ -35,27 +35,54 @@ import urllib.request
 from io import BytesIO
 from PIL import Image
 
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 _CURR_DIR = os.path.dirname(os.path.abspath(__file__))
 _BUNDLE_DIR = os.path.dirname(_CURR_DIR)
 for p in [_CURR_DIR, os.path.join(_CURR_DIR, "phase0"), _BUNDLE_DIR]:
     if os.path.exists(p) and p not in sys.path:
         sys.path.insert(0, p)
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    _env_path = os.path.join(_BUNDLE_DIR, ".env")
+    if os.path.exists(_env_path):
+        load_dotenv(_env_path)
+except ImportError:
+    pass
+
 from schema import CORE_FIELDS, EXTENDED_FIELDS, ALL_FIELDS, json_schema, normalise, BAD
 from gate import run_gate
 from evaluate import evaluate, format_report
 
-DEFAULT_ENDPOINT = os.environ.get("LOCAL_VLM_URL", "http://localhost:8000/v1")
-DEFAULT_MODEL = os.environ.get("LOCAL_VLM_MODEL", "Qwen3-VL-4B-Instruct")
+DEFAULT_ENDPOINT = os.environ.get("LOCAL_VLM_URL", "http://localhost:11434/v1")
+DEFAULT_MODEL = os.environ.get("LOCAL_VLM_MODEL", "qwen3-vl:4b")
 
-SYSTEM_PROMPT = """You are an expert document understanding AI specialized in Indian road-freight invoices.
-Extract the structured data from the invoice image according to the specified JSON schema.
+SYSTEM_PROMPT = """Extract the structured invoice fields from this road-freight invoice image.
+Return ONLY a valid JSON object with these keys (use null for any absent field):
+{
+  "invoice_id": "e.g. INV000123",
+  "order_id": "e.g. ORD000123",
+  "vendor_id": "e.g. VEN001",
+  "invoice_date": "YYYY-MM-DD or DD-MM-YYYY",
+  "origin": "city name",
+  "destination": "city name",
+  "actual_days": 1.5,
+  "weight_kg": 5000.0,
+  "freight_base": 10000.0,
+  "detention": 0.0,
+  "toll": 500.0,
+  "total": 10500.0,
+  "vendor_gstin": "string or null"
+}
 Rules:
-- Emit valid JSON only matching the schema properties.
-- Do not output any preamble, commentary, or markdown formatting outside the JSON object.
-- For absent fields, emit null. Never guess or hallucinate unstated values.
-- Monetary amounts should be pure numbers (no currency symbol or commas).
-- Dates must be in ISO format YYYY-MM-DD or DD-MM-YYYY as printed.
+- For monetary fields (freight_base, detention, toll, total), output pure numbers only without commas or currency symbols.
+- For absent fields, output null. Never guess or hallucinate unstated values.
+- Do not output any markdown or commentary outside the JSON object.
 """
 
 
@@ -112,39 +139,50 @@ class Qwen3VLExtractor:
 
     def extract_from_image(self, image_path: str, retries: int = 3) -> dict:
         """Extract structured fields directly from an invoice image using Qwen3-VL."""
-        schema_def = json_schema(include_extended=True, include_line_items=False)
-        schema_str = json.dumps(schema_def, indent=2)
-
-        prompt = f"""{SYSTEM_PROMPT}
-
-Required JSON Schema:
-{schema_str}
-"""
+        prompt = SYSTEM_PROMPT
         if self.backend == "transformers" and self._tf_model is not None:
             return self._extract_transformers(image_path, prompt)
 
-        # Standard OpenAI-compatible multimodal endpoint
+        # Encode image to base64
         b64_image = encode_image_to_base64(image_path)
-        payload = {
-            "model": self.model_name,
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {"type": "text", "text": prompt},
-                        {
-                            "type": "image_url",
-                            "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}
-                        }
-                    ]
-                }
-            ],
-            "temperature": 0.0,
-            "max_tokens": 1024,
-            "response_format": {"type": "json_object"}
-        }
+        is_ollama = "11434" in self.endpoint
 
-        url = f"{self.endpoint}/chat/completions" if not self.endpoint.endswith("/chat/completions") else self.endpoint
+        if is_ollama:
+            base = self.endpoint.replace("/v1", "").rstrip("/")
+            url = f"{base}/api/chat"
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": prompt,
+                        "images": [b64_image]
+                    }
+                ],
+                "stream": False,
+                "format": "json"
+            }
+        else:
+            url = f"{self.endpoint}/chat/completions" if not self.endpoint.endswith("/chat/completions") else self.endpoint
+            payload = {
+                "model": self.model_name,
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {
+                                "type": "image_url",
+                                "image_url": {"url": f"data:image/jpeg;base64,{b64_image}"}
+                            }
+                        ]
+                    }
+                ],
+                "temperature": 0.0,
+                "max_tokens": 1024,
+                "response_format": {"type": "json_object"}
+            }
+
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}"
@@ -154,9 +192,14 @@ Required JSON Schema:
             try:
                 data = json.dumps(payload).encode("utf-8")
                 req = urllib.request.Request(url, data=data, headers=headers)
-                with urllib.request.urlopen(req, timeout=90) as response:
+                with urllib.request.urlopen(req, timeout=120) as response:
                     res = json.load(response)
-                    content = res["choices"][0]["message"]["content"]
+                    if "message" in res and "content" in res["message"]:
+                        content = res["message"]["content"]
+                    elif "choices" in res and len(res["choices"]) > 0:
+                        content = res["choices"][0]["message"]["content"]
+                    else:
+                        content = str(res)
                     return self._clean_and_parse_json(content)
             except urllib.error.HTTPError as e:
                 err_msg = e.read().decode("utf-8", errors="ignore")

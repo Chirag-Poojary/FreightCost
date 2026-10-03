@@ -314,11 +314,8 @@ def report(results, total):
             print(f"    - {t:<22} {caught}/{total_t} ({caught/total_t:.1%})")
     print("=" * 65)
     print("\nNote: this run used the {} extractor.".format(
-        "RULE-BASED (no API key dependency)" if RUN_EXTRACTOR == "rules"
-        else f"LLM ({RUN_PROVIDER})"))
-    if RUN_EXTRACTOR == "rules":
-        print("To reproduce with the LLM extractor, rotate GROQ_API_KEY first (see")
-        print("the security note), then rerun with --extractor llm --provider groq.")
+        "QWEN3-VL (local multimodal vision LLM)" if RUN_EXTRACTOR in ("qwen3-vl", "vlm")
+        else f"GROQ CLOUD LLM ({RUN_PROVIDER})"))
 
 
 if __name__ == "__main__":
@@ -334,7 +331,7 @@ if __name__ == "__main__":
     ap.add_argument("--start", type=int, default=0, help="Start offset")
     ap.add_argument("--checkpoint", default=_def_ckpt, help="Checkpoint jsonl path")
     ap.add_argument("--data-dir", default=_def_data, help="Path to code/output or data dir with orders.csv and models/")
-    ap.add_argument("--extractor", choices=["qwen3-vl", "llm", "rules"], default="qwen3-vl", help="Extractor engine")
+    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="qwen3-vl", help="Extractor engine: 'qwen3-vl' or 'groq'")
     ap.add_argument("--provider", default="groq", help="LLM provider (default: groq)")
     a = ap.parse_args()
 

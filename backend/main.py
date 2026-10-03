@@ -124,26 +124,24 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "qwen3-vl
                         provider: str = "groq"):
     db = get_db()
 
+    canonical_extractor = "qwen3-vl" if extractor in ("qwen3-vl", "vlm", "local") else "groq"
+
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as tmp:
         tmp.write(await file.read())
         tmp_path = tmp.name
     try:
-        if extractor in ("qwen3-vl", "vlm"):
-            try:
-                pred = extract_vlm(tmp_path, model="Qwen3-VL-4B-Instruct")
-            except Exception:
-                text = ocr(tmp_path)
-                pred = extract_llm(text, provider=provider)
+        if canonical_extractor == "qwen3-vl":
+            pred = extract_vlm(tmp_path)
         else:
             text = ocr(tmp_path)
-            pred = extract_llm(text, provider=provider)
+            pred = extract_llm(text, provider="groq")
     finally:
         if os.path.exists(tmp_path):
             os.unlink(tmp_path)
 
     passed, reason = confidence_gate(pred, db.order_exists, db.vendor_exists)
 
-    result = {"filename": file.filename, "extractor_used": extractor,
+    result = {"filename": file.filename, "extractor_used": canonical_extractor,
              "extracted_fields": pred, "gate_passed": passed, "gate_reason": reason}
 
     if passed:
@@ -162,7 +160,11 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "qwen3-vl
 
         rec_for_explain = {"passed": True, "predicted_flag": flagged, "proba": proba,
                            "features": features}
-        explanation = explain_llm(rec_for_explain, provider)
+        try:
+            explanation = explain_llm(rec_for_explain, provider="groq")
+        except Exception:
+            from audit_explanation import explain_rules
+            explanation = explain_rules(rec_for_explain)
 
         result.update({
             "order_id": pred["order_id"], "vendor_id": pred["vendor_id"],

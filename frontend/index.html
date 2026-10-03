@@ -267,79 +267,41 @@
 
 
         <!-- Extractor Mode Configuration -->
-
         <div class="form-group" style="margin-top: calc(var(--space-unit) * 2.5);">
-
           <label class="form-label">Extraction Engine</label>
-
           <div class="radio-group">
             <label class="radio-card active">
               <input type="radio" name="extractor" value="qwen3-vl" checked>
               <div>
-                <div style="font-weight: 600;">Qwen3-VL-4B-Instruct</div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Local Multimodal Vision-Language Model</div>
+                <div style="font-weight: 600;">Qwen3-VL-4B (Local Vision LLM)</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Multimodal VLM offloaded to local GPU via Ollama</div>
               </div>
             </label>
             <label class="radio-card">
-              <input type="radio" name="extractor" value="llm">
+              <input type="radio" name="extractor" value="groq">
               <div>
-                <div style="font-weight: 600;">Cloud LLM / API</div>
-                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Groq / Gemini / OpenRouter / Cerebras</div>
+                <div style="font-weight: 600;">Groq Cloud LLM</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-dim);">Qwen3.8-27B high-speed inference on Groq LPU</div>
               </div>
             </label>
           </div>
-
         </div>
 
-
-
-        <!-- LLM Provider Select (Conditional) -->
-
-        <div id="llm-provider-container" class="form-group hidden">
-
-          <label class="form-label" for="llm-provider">LLM Provider</label>
-
-          <select id="llm-provider" class="form-select">
-
-            <option value="groq" selected>Groq Cloud (Fast LPU)</option>
-
-            <option value="gemini">Google Gemini</option>
-
-            <option value="openrouter">OpenRouter</option>
-
-            <option value="cerebras">Cerebras</option>
-
-          </select>
-
-        </div>
-
-
-
-        <button type="button" id="audit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 1);" disabled>
-
+        <button type="button" id="audit-btn" class="btn btn-primary" style="width: 100%; margin-top: calc(var(--space-unit) * 2);" disabled>
           <span id="audit-spinner" class="spinner hidden"></span>
-
           <span id="audit-btn-text">Audit Invoice</span>
-
         </button>
-
       </div>
 
-
-
       <!-- Audit Results Panel (Hidden initially) -->
-
       <div id="audit-results-card" class="card hidden">
-
         <div class="card-title">
-
           <span>Audit Verdict & Scoring</span>
-
-          <span id="verdict-badge" class="badge badge-neutral">No invoice audited yet</span>
-
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span id="extractor-used-badge" class="badge badge-neutral" style="font-size: 0.75rem;"></span>
+            <span id="verdict-badge" class="badge badge-neutral">No invoice audited yet</span>
+          </div>
         </div>
-
-
 
         <!-- Gate Status / Rejection Box -->
 

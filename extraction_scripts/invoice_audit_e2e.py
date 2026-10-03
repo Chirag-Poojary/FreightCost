@@ -730,9 +730,8 @@ if __name__ == "__main__":
     ap = argparse.ArgumentParser(description="End-to-End Freight Invoice Audit Pipeline")
     ap.add_argument("--image", help="Path to single invoice image")
     ap.add_argument("--dir", default="phase_a_output/invoices_scanned", help="Invoice directory")
-    ap.add_argument("--n", type=int, default=3, help="Number of invoices to process")
-    ap.add_argument("--extractor", choices=["rules", "llm"], default="llm")
-    ap.add_argument("--new-invoice", action="store_true", help="Simulate live new invoice (bypasses DB, computes via ORS/PPAC/Open-Meteo)")
+    ap.add_argument("--extractor", choices=["qwen3-vl", "groq", "llm"], default="qwen3-vl",
+                    help="Extractor engine: 'qwen3-vl' (local VLM) or 'groq' (cloud LLM)")
     ap.add_argument("--benchmark-gate", action="store_true", help="Run full Confidence Gate + Model 2 two-number report")
     args = ap.parse_args()
 
