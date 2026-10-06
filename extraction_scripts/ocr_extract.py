@@ -74,6 +74,10 @@ MODEL2_CRITICAL = ["invoice_id", "order_id", "vendor_id", "total", "actual_days"
 
 AMOUNT_RE = r"[-+]?[\d,]+(?:\.\d{1,2})?"
 
+# Glyph normalization table for OCR numeric field reconstruction
+_DIGIT_FIX = str.maketrans({"O": "0", "o": "0", "l": "1", "I": "1",
+                            "S": "5", "B": "8", "Z": "2"})
+
 
 def ocr(path):
     """OCR with layout preserved. psm 6 = assume a uniform block of text,

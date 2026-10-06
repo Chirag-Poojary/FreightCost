@@ -1,0 +1,1004 @@
+{
+  "documents": [
+    {
+      "doc_id": "HARD01",
+      "layout": "control_clean",
+      "notes": "Clean bordered table; control for comparison",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV175954",
+          "pred": "INV175954",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD961168",
+          "pred": "ORD961168",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND648",
+          "pred": "VND648",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-02-12",
+          "pred": "12-02-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Lucknow",
+          "pred": "Lucknow",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Bhiwandi",
+          "pred": "Bhiwandi",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 42150.0,
+          "pred": 42150.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 1450.0,
+          "pred": 1450.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 2900.0,
+          "pred": 2900.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 46500.0,
+          "pred": 46500.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 15700.0,
+          "pred": 15700.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 1.0,
+          "pred": 1.0,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 41.35
+    },
+    {
+      "doc_id": "HARD02",
+      "layout": "rotate_blur",
+      "notes": "4.5 degree skew, blur and sensor noise",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV538485",
+          "pred": "INV538485",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD173248",
+          "pred": "ORD173248",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND346",
+          "pred": "VND346",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-02-18",
+          "pred": "18-02-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Gurugram",
+          "pred": "Gurugram",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Hyderabad",
+          "pred": "Hyderabad",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 60950.0,
+          "pred": 60950.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 1850.0,
+          "pred": 1850.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 600.0,
+          "pred": 600.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 63400.0,
+          "pred": 63400.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 11650.0,
+          "pred": 11650.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 1.0,
+          "pred": 1.0,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 38.9
+    },
+    {
+      "doc_id": "HARD03",
+      "layout": "lowres_jpeg",
+      "notes": "35% resolution with heavy JPEG artefacts",
+      "total_fields": 12,
+      "correct_fields": 10,
+      "accuracy": 83.3,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV711316",
+          "pred": "INV711316",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD164867",
+          "pred": "ORD164867",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND690",
+          "pred": "VND690",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-10-13",
+          "pred": "2025-10-13",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Lucknow",
+          "pred": "Lucknow",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Surat",
+          "pred": "Suri",
+          "status": "WRONG"
+        },
+        "freight_base": {
+          "gt": 66900.0,
+          "pred": 66900,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 1250.0,
+          "pred": 1250,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 1800.0,
+          "pred": 1800,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 69950.0,
+          "pred": 69950,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 2050.0,
+          "pred": 2.05,
+          "status": "WRONG"
+        },
+        "actual_days": {
+          "gt": 3.0,
+          "pred": 3,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 35.2
+    },
+    {
+      "doc_id": "HARD04",
+      "layout": "phone_photo",
+      "notes": "Perspective warp, shadow gradient, desk background, folds",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV251262",
+          "pred": "INV251262",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD666950",
+          "pred": "ORD666950",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND220",
+          "pred": "VND220",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-10-10",
+          "pred": "10-10-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Nagpur",
+          "pred": "Nagpur",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Hyderabad",
+          "pred": "Hyderabad",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 13750.0,
+          "pred": 13750.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 4050.0,
+          "pred": 4050.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 1250.0,
+          "pred": 1250.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 19050.0,
+          "pred": 19050.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 15100.0,
+          "pred": 15100.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 2.5,
+          "pred": 2.5,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 37.38
+    },
+    {
+      "doc_id": "HARD05",
+      "layout": "total_on_top_columns",
+      "notes": "Total at top; borderless breakdown; small type",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV490487",
+          "pred": "INV490487",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD202163",
+          "pred": "ORD202163",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND660",
+          "pred": "VND660",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-12-03",
+          "pred": "03-12-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Lucknow",
+          "pred": "Lucknow",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Chennai",
+          "pred": "Chennai",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 19550.0,
+          "pred": 19550.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 4200.0,
+          "pred": 4200.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 4050.0,
+          "pred": 4050.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 27800.0,
+          "pred": 27800.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 15200.0,
+          "pred": 15200.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 1.0,
+          "pred": 1,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 31.72
+    },
+    {
+      "doc_id": "HARD06",
+      "layout": "dotmatrix_tiny",
+      "notes": "Dot-matrix monospace, small font, faint print",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV548363",
+          "pred": "INV548363",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD914983",
+          "pred": "ORD914983",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND421",
+          "pred": "VND421",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-08-19",
+          "pred": "19-08-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Lucknow",
+          "pred": "LUCKNOW",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Pune",
+          "pred": "PUNE",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 72350.0,
+          "pred": 72350.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 1800.0,
+          "pred": 1800.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 3550.0,
+          "pred": 3550.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 77700.0,
+          "pred": 77700.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 12400.0,
+          "pred": 12400.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 5.0,
+          "pred": 5.0,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 58.25
+    },
+    {
+      "doc_id": "HARD07",
+      "layout": "hindi_bilingual",
+      "notes": "Hindi + English labels, Devanagari glyphs",
+      "total_fields": 12,
+      "correct_fields": 0,
+      "accuracy": 0.0,
+      "critical_all_correct": false,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV185831",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "order_id": {
+          "gt": "ORD702326",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "vendor_id": {
+          "gt": "VND407",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "invoice_date": {
+          "gt": "2025-09-16",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "origin": {
+          "gt": "Surat",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "destination": {
+          "gt": "Chennai",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "freight_base": {
+          "gt": 39650.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "detention": {
+          "gt": 2050.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "toll": {
+          "gt": 1550.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "total": {
+          "gt": 43250.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "weight_kg": {
+          "gt": 23200.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "actual_days": {
+          "gt": 5.0,
+          "pred": null,
+          "status": "MISSING"
+        }
+      },
+      "elapsed_sec": 57.12
+    },
+    {
+      "doc_id": "HARD08",
+      "layout": "stamp_over_total",
+      "notes": "Round stamp covering the total plus pen scribble",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV636800",
+          "pred": "INV636800",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD538433",
+          "pred": "ORD538433",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND268",
+          "pred": "VND268",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-06-05",
+          "pred": "05-06-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Gurugram",
+          "pred": "Gurugram",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Surat",
+          "pred": "Surat",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 54950.0,
+          "pred": 54950.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 2300.0,
+          "pred": 2300.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 4250.0,
+          "pred": 4250.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 61500.0,
+          "pred": 61500.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 13300.0,
+          "pred": 13300.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 6.0,
+          "pred": 6.0,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 50.45
+    },
+    {
+      "doc_id": "HARD09",
+      "layout": "faded_thermal",
+      "notes": "Faded low-contrast thermal print with banding",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV927425",
+          "pred": "INV927425",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD958105",
+          "pred": "ORD958105",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND421",
+          "pred": "VND421",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-06-23",
+          "pred": "23-06-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Pune",
+          "pred": "Pune",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Jaipur",
+          "pred": "Jaipur",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 13000.0,
+          "pred": 13000,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 4750.0,
+          "pred": 4750,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 850.0,
+          "pred": 850,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 18600.0,
+          "pred": 18600,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 9750.0,
+          "pred": 9750,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 7.0,
+          "pred": 7,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 30.78
+    },
+    {
+      "doc_id": "HARD10",
+      "layout": "lakh_grouping_big",
+      "notes": "Lakh-style 1,23,456.00 grouping, six-figure amounts",
+      "total_fields": 12,
+      "correct_fields": 0,
+      "accuracy": 0.0,
+      "critical_all_correct": false,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV383051",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "order_id": {
+          "gt": "ORD597128",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "vendor_id": {
+          "gt": "VND813",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "invoice_date": {
+          "gt": "2025-11-03",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "origin": {
+          "gt": "Gurugram",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "destination": {
+          "gt": "Surat",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "freight_base": {
+          "gt": 154350.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "detention": {
+          "gt": 5600.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "toll": {
+          "gt": 3300.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "total": {
+          "gt": 163250.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "weight_kg": {
+          "gt": 2350.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "actual_days": {
+          "gt": 4.0,
+          "pred": null,
+          "status": "MISSING"
+        }
+      },
+      "elapsed_sec": 57.27
+    },
+    {
+      "doc_id": "HARD11",
+      "layout": "absent_fields",
+      "notes": "No weight line, no toll row (truth = null), detention printed as NIL (truth = 0)",
+      "total_fields": 12,
+      "correct_fields": 2,
+      "accuracy": 16.7,
+      "critical_all_correct": false,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV961850",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "order_id": {
+          "gt": "ORD567288",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "vendor_id": {
+          "gt": "VND391",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "invoice_date": {
+          "gt": "2025-12-13",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "origin": {
+          "gt": "Jaipur",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "destination": {
+          "gt": "Lucknow",
+          "pred": null,
+          "status": "MISSING"
+        },
+        "freight_base": {
+          "gt": 75250.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "detention": {
+          "gt": 0.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "toll": {
+          "gt": null,
+          "pred": null,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 75250.0,
+          "pred": null,
+          "status": "MISSING"
+        },
+        "weight_kg": {
+          "gt": null,
+          "pred": null,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 5.0,
+          "pred": null,
+          "status": "MISSING"
+        }
+      },
+      "elapsed_sec": 57.25
+    },
+    {
+      "doc_id": "HARD12",
+      "layout": "distractor_numbers",
+      "notes": "PO, LR, e-way bill, vehicle and phone numbers beside the real IDs",
+      "total_fields": 12,
+      "correct_fields": 12,
+      "accuracy": 100.0,
+      "critical_all_correct": true,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV222783",
+          "pred": "INV222783",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD617674",
+          "pred": "ORD617674",
+          "status": "CORRECT"
+        },
+        "vendor_id": {
+          "gt": "VND160",
+          "pred": "VND160",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-04-25",
+          "pred": "2025-04-25",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Bengaluru",
+          "pred": "Bengaluru",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Jaipur",
+          "pred": "Jaipur",
+          "status": "CORRECT"
+        },
+        "freight_base": {
+          "gt": 11300.0,
+          "pred": 11300.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 3450.0,
+          "pred": 3450.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 2650.0,
+          "pred": 2650.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 17400.0,
+          "pred": 17400.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 8150.0,
+          "pred": 8150.0,
+          "status": "CORRECT"
+        },
+        "actual_days": {
+          "gt": 2.5,
+          "pred": 2.5,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 38.19
+    },
+    {
+      "doc_id": "HARD13",
+      "layout": "worst_case_combo",
+      "notes": "Phone photo + low resolution + stamp + lakh grouping + distractors",
+      "total_fields": 12,
+      "correct_fields": 9,
+      "accuracy": 75.0,
+      "critical_all_correct": false,
+      "field_scores": {
+        "invoice_id": {
+          "gt": "INV274447",
+          "pred": "INV274447",
+          "status": "CORRECT"
+        },
+        "order_id": {
+          "gt": "ORD571007",
+          "pred": "OROS71007",
+          "status": "WRONG"
+        },
+        "vendor_id": {
+          "gt": "VND511",
+          "pred": "VND511",
+          "status": "CORRECT"
+        },
+        "invoice_date": {
+          "gt": "2025-09-09",
+          "pred": "09-09-2025",
+          "status": "CORRECT"
+        },
+        "origin": {
+          "gt": "Ahmedabad",
+          "pred": "Ahmedabad",
+          "status": "CORRECT"
+        },
+        "destination": {
+          "gt": "Gurugram",
+          "pred": "Gungram",
+          "status": "WRONG"
+        },
+        "freight_base": {
+          "gt": 120350.0,
+          "pred": 120350.0,
+          "status": "CORRECT"
+        },
+        "detention": {
+          "gt": 3000.0,
+          "pred": 3000.0,
+          "status": "CORRECT"
+        },
+        "toll": {
+          "gt": 2900.0,
+          "pred": 2900.0,
+          "status": "CORRECT"
+        },
+        "total": {
+          "gt": 126250.0,
+          "pred": 126250.0,
+          "status": "CORRECT"
+        },
+        "weight_kg": {
+          "gt": 23400.0,
+          "pred": 23.4,
+          "status": "WRONG"
+        },
+        "actual_days": {
+          "gt": 2.5,
+          "pred": 2.5,
+          "status": "CORRECT"
+        }
+      },
+      "elapsed_sec": 42.27
+    }
+  ],
+  "mean_accuracy": 75.0,
+  "critical_all_correct_rate": 69.2,
+  "field_stats": {
+    "invoice_id": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "order_id": {
+      "accuracy": 69.2,
+      "correct": 9,
+      "total": 13
+    },
+    "vendor_id": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "invoice_date": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "origin": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "destination": {
+      "accuracy": 61.5,
+      "correct": 8,
+      "total": 13
+    },
+    "freight_base": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "detention": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "toll": {
+      "accuracy": 84.6,
+      "correct": 11,
+      "total": 13
+    },
+    "total": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    },
+    "weight_kg": {
+      "accuracy": 69.2,
+      "correct": 9,
+      "total": 13
+    },
+    "actual_days": {
+      "accuracy": 76.9,
+      "correct": 10,
+      "total": 13
+    }
+  }
+}

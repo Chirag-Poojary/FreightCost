@@ -416,11 +416,14 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Invoice image not found: {image_path}")
 
-    # Step 1: OCR & Extraction
-    raw_ocr = ocr(image_path)
-    if extractor == "rules":
+    # Step 1: Extraction
+    if extractor in ("qwen3-vl", "vlm", "local"):
+        extracted = extract_vlm(image_path)
+    elif extractor == "rules":
+        raw_ocr = ocr(image_path)
         extracted = extract_rules(raw_ocr)
     else:
+        raw_ocr = ocr(image_path)
         extracted = extract_llm(raw_ocr, provider=provider, model=model)
 
     inv_id = extracted.get("invoice_id")

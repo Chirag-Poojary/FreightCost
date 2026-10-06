@@ -160,7 +160,11 @@ class Qwen3VLExtractor:
                     }
                 ],
                 "stream": False,
-                "format": "json"
+                "format": "json",
+                "options": {
+                    "num_predict": 2048,
+                    "temperature": 0.0
+                }
             }
         else:
             url = f"{self.endpoint}/chat/completions" if not self.endpoint.endswith("/chat/completions") else self.endpoint
@@ -179,7 +183,7 @@ class Qwen3VLExtractor:
                     }
                 ],
                 "temperature": 0.0,
-                "max_tokens": 1024,
+                "max_tokens": 2048,
                 "response_format": {"type": "json_object"}
             }
 
@@ -192,13 +196,17 @@ class Qwen3VLExtractor:
             try:
                 data = json.dumps(payload).encode("utf-8")
                 req = urllib.request.Request(url, data=data, headers=headers)
-                with urllib.request.urlopen(req, timeout=120) as response:
+                with urllib.request.urlopen(req, timeout=180) as response:
                     res = json.load(response)
-                    if "message" in res and "content" in res["message"]:
-                        content = res["message"]["content"]
-                    elif "choices" in res and len(res["choices"]) > 0:
+                    msg = res.get("message", {})
+                    content = msg.get("content", "")
+                    # If thinking consumed tokens and content is empty, check thinking block for JSON
+                    if not content or not content.strip():
+                        if "thinking" in msg and "{" in msg["thinking"]:
+                            content = msg["thinking"]
+                    if not content and "choices" in res and len(res["choices"]) > 0:
                         content = res["choices"][0]["message"]["content"]
-                    else:
+                    if not content:
                         content = str(res)
                     return self._clean_and_parse_json(content)
             except urllib.error.HTTPError as e:
