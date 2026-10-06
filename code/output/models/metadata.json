@@ -1,31 +1,182 @@
 {
   "seed": 42,
   "model_1": {
-    "holdout_mae": 456.92,
-    "holdout_mape_pct": 1.671,
-    "n_features": 14,
-    "prediction_interval": {
-      "target_coverage": 0.8,
-      "empirical_coverage": 0.8705,
-      "average_interval_width_inr": 1852.28
-    }
+    "design": "baseline (fuel+toll+driver) x XGBoost ratio",
+    "comparison": {
+      "previous_direct_xgb": {
+        "holdout": {
+          "mae_inr": 458.57,
+          "mape_pct": 1.681,
+          "max_abs_pct_error": 24.1,
+          "interval_coverage": 0.8697,
+          "negative_predictions": 0
+        },
+        "diesel_70_to_86": {
+          "mae_inr": 2576.03,
+          "mape_pct": 11.015,
+          "max_abs_pct_error": 31.86,
+          "interval_coverage": 0.092,
+          "negative_predictions": 0
+        },
+        "diesel_98_to_125": {
+          "mae_inr": 4123.27,
+          "mape_pct": 11.968,
+          "max_abs_pct_error": 37.19,
+          "interval_coverage": 0.085,
+          "negative_predictions": 0
+        },
+        "routes_2900_to_4500_km": {
+          "mae_inr": 19032.1,
+          "mape_pct": 21.47,
+          "max_abs_pct_error": 41.04,
+          "interval_coverage": 0.0207,
+          "negative_predictions": 0
+        }
+      },
+      "hybrid_baseline_xgb": {
+        "holdout": {
+          "mae_inr": 450.53,
+          "mape_pct": 1.615,
+          "max_abs_pct_error": 7.23,
+          "interval_coverage": 0.7875,
+          "negative_predictions": 0
+        },
+        "diesel_70_to_86": {
+          "mae_inr": 409.89,
+          "mape_pct": 1.703,
+          "max_abs_pct_error": 7.42,
+          "interval_coverage": 0.768,
+          "negative_predictions": 0
+        },
+        "diesel_98_to_125": {
+          "mae_inr": 543.14,
+          "mape_pct": 1.633,
+          "max_abs_pct_error": 7.86,
+          "interval_coverage": 0.756,
+          "negative_predictions": 0
+        },
+        "routes_2900_to_4500_km": {
+          "mae_inr": 1513.66,
+          "mape_pct": 1.811,
+          "max_abs_pct_error": 8.33,
+          "interval_coverage": 0.7127,
+          "negative_predictions": 0
+        }
+      }
+    },
+    "n_features": 14
   },
   "model_2": {
-    "pr_auc": 0.819,
-    "precision": 0.499,
-    "recall": 0.862,
-    "f1": 0.632,
+    "chosen_variant": "deflated_full_monotone",
+    "features": [
+      "actual_billed_amount",
+      "model_a_predicted_cost",
+      "cost_mismatch",
+      "actual_days",
+      "true_delay_days",
+      "commercial_delay_days",
+      "adverse_weather_days",
+      "vendor_padding_ratio",
+      "vendor_historical_risk_score",
+      "cost_mismatch_ratio",
+      "cost_mismatch_upper",
+      "cost_mismatch_upper_ratio",
+      "billed_to_p90_ratio",
+      "excess_rate_per_kg",
+      "excess_rate_per_ton_km",
+      "cost_mismatch_delay_skew",
+      "zero_delay_p90_breach"
+    ],
     "threshold": 0.5,
-    "per_anomaly_type_recall": {
-      "detention_padding": 1.0,
-      "toll_inflation": 0.931,
-      "weight_discrepancy": 0.664
-    }
+    "rupee_deflator": true,
+    "comparison": {
+      "previous_full_features": {
+        "pr_auc": 0.819,
+        "precision": 0.495,
+        "recall": 0.855,
+        "f1": 0.627,
+        "per_anomaly_type_recall": {
+          "detention_padding": 1.0,
+          "toll_inflation": 0.938,
+          "weight_discrepancy": 0.637
+        },
+        "price_rise_25pct": {
+          "verdicts_changed_pct": 2.38,
+          "false_positive_rate_before": 0.0521,
+          "false_positive_rate_after": 0.0659
+        }
+      },
+      "scale_free_features": {
+        "pr_auc": 0.805,
+        "precision": 0.466,
+        "recall": 0.874,
+        "f1": 0.608,
+        "per_anomaly_type_recall": {
+          "detention_padding": 1.0,
+          "toll_inflation": 0.931,
+          "weight_discrepancy": 0.699
+        },
+        "price_rise_25pct": {
+          "verdicts_changed_pct": 0.0,
+          "false_positive_rate_before": 0.0596,
+          "false_positive_rate_after": 0.0596
+        }
+      },
+      "scale_free_monotone": {
+        "pr_auc": 0.805,
+        "precision": 0.459,
+        "recall": 0.882,
+        "f1": 0.604,
+        "per_anomaly_type_recall": {
+          "detention_padding": 1.0,
+          "toll_inflation": 0.938,
+          "weight_discrepancy": 0.716
+        },
+        "price_rise_25pct": {
+          "verdicts_changed_pct": 0.0,
+          "false_positive_rate_before": 0.062,
+          "false_positive_rate_after": 0.062
+        }
+      },
+      "deflated_full_features": {
+        "pr_auc": 0.821,
+        "precision": 0.496,
+        "recall": 0.863,
+        "f1": 0.63,
+        "per_anomaly_type_recall": {
+          "detention_padding": 1.0,
+          "toll_inflation": 0.931,
+          "weight_discrepancy": 0.668
+        },
+        "price_rise_25pct": {
+          "verdicts_changed_pct": 0.0,
+          "false_positive_rate_before": 0.0523,
+          "false_positive_rate_after": 0.0523
+        }
+      },
+      "deflated_full_monotone": {
+        "pr_auc": 0.821,
+        "precision": 0.486,
+        "recall": 0.86,
+        "f1": 0.621,
+        "per_anomaly_type_recall": {
+          "detention_padding": 1.0,
+          "toll_inflation": 0.935,
+          "weight_discrepancy": 0.654
+        },
+        "price_rise_25pct": {
+          "verdicts_changed_pct": 0.0,
+          "false_positive_rate_before": 0.0542,
+          "false_positive_rate_after": 0.0542
+        }
+      }
+    },
+    "trained_on": "out-of-fold Model 1 predictions (no in-sample leakage)"
   },
   "versions": {
     "xgboost": "3.4.1",
-    "scikit_learn": "1.9.0",
-    "pandas": "3.0.5",
-    "numpy": "2.5.2"
+    "scikit_learn": "1.9.1",
+    "pandas": "3.0.6",
+    "numpy": "2.5.3"
   }
 }

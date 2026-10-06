@@ -54,6 +54,8 @@ for p in [_SCRIPT_DIR, os.path.join(_BUNDLE_DIR, "extraction_scripts"), os.path.
         sys.path.insert(0, p)
 
 from ocr_extract import ocr, extract_rules, extract_llm, _num  # reuse the tested extractor
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "backend")))
+from audit_core import build_model2_features, score_model2  # noqa: E402  shared with the API
 
 # ------------------------------------------------------------- the 4-tier gate
 CRITICAL = ["order_id", "vendor_id", "total", "actual_days"]
@@ -189,21 +191,13 @@ def main(indir, n, data_dir, start, checkpoint, extractor, provider):
                 .set_index("order_id"))
     audit = pd.read_csv(os.path.join(data_dir, "_ground_truth_audit.csv")).set_index("order_id")
 
-    m1_path = os.path.join(data_dir, "models", "model_1_freight_cost.joblib")
-    if not os.path.exists(m1_path):
-        m1_path = os.path.join(data_dir, "model_1_freight_cost.joblib")
-    m2_path = os.path.join(data_dir, "models", "model_2_invoice_risk.joblib")
-    if not os.path.exists(m2_path):
-        m2_path = os.path.join(data_dir, "model_2_invoice_risk.joblib")
-    m1_meta_path = os.path.join(data_dir, "models", "model_1_features.json")
-    if not os.path.exists(m1_meta_path):
-        m1_meta_path = os.path.join(data_dir, "model_1_features.json")
-
-    m1 = joblib.load(m1_path)
-    m2 = joblib.load(m2_path)
-    with open(m1_meta_path) as f:
-        m1_meta = json.load(f)
-    m1w = _M1Wrapper(m1, m1_meta)
+    mdir = os.path.join(data_dir, "models")
+    if not os.path.isdir(mdir):
+        mdir = data_dir
+    sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "code")))
+    from freight_models import FreightCostModel, InvoiceRiskModel, load_bundle
+    m1w = FreightCostModel(load_bundle(os.path.join(mdir, "model_1_freight_cost.pkl")))
+    m2 = InvoiceRiskModel(load_bundle(os.path.join(mdir, "model_2_invoice_risk.pkl")))
 
     done_images = set()
     try:
@@ -232,9 +226,11 @@ def main(indir, n, data_dir, start, checkpoint, extractor, provider):
             else:
                 order_row = orders.loc[pred["order_id"]]
                 inv_row = invoices.loc[pred["order_id"]]
-                feat = build_model2_row(pred, order_row, inv_row, m1w)
-                x2 = pd.DataFrame([feat])[MODEL2_FEATURES]
-                proba = float(m2.predict_proba(x2)[0, 1])
+                order_d = {**order_row.to_dict(), "order_id": pred["order_id"]}
+                ctx = {k: inv_row[k] for k in ("adverse_weather_days", "vendor_padding_ratio",
+                                               "vendor_historical_risk_score")}
+                feat = build_model2_features(pred, order_d, ctx, m1w)   # same code as the API
+                proba = score_model2(feat, m2, order_d["expected_fuel_price"])
                 truth_row = audit.loc[pred["order_id"]]
                 rec = {
                     "image": entry["image"],

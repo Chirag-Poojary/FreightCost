@@ -8,6 +8,17 @@ dicts in and returns plain dicts out, so either caller can supply data from
 wherever it actually lives (local CSV for the CLI, Supabase for the API).
 """
 import json
+import os
+import sys
+
+# Model classes + logic checks live in code/freight_models.py, shared with training.
+_CODE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "code"))
+if _CODE_DIR not in sys.path:
+    sys.path.insert(0, _CODE_DIR)
+from freight_models import (FreightCostModel, InvoiceRiskModel,  # noqa: E402,F401
+                            check_inputs, load_bundle)
+
+Model1 = FreightCostModel   # backwards-compatible name
 
 CRITICAL = ["order_id", "vendor_id", "total", "actual_days"]
 
@@ -69,77 +80,6 @@ def confidence_gate(pred, order_exists, vendor_exists):
     return True, None
 
 
-def _onehot_row(order, feature_meta):
-    row = {k: order[k] for k in
-          ("distance_km", "ideal_days", "quoted_days", "billable_weight_kg",
-           "expected_fuel_price", "expected_weather_score")}
-    for c in feature_meta["product_categories"]:
-        row[f"cat_{c}"] = 1 if order.get("product_category") == c else 0
-    for c in feature_meta["truck_types"]:
-        row[f"truck_{c}"] = 1 if order.get("truck_type") == c else 0
-    return row
-
-
-class Model1:
-    """Wraps the raw XGBRegressor so callers just pass an order dict.
-    Supports point estimates, quantile prediction intervals (P10/P90),
-    and exact TreeSHAP feature attribution without external dependencies."""
-    def __init__(self, booster, feature_meta, booster_p10=None, booster_p90=None):
-        self.booster = booster
-        self.booster_p10 = booster_p10
-        self.booster_p90 = booster_p90
-        self.meta = feature_meta
-        self.columns = feature_meta["column_order"]
-
-    def _prepare_df(self, order):
-        import pandas as pd
-        row = _onehot_row(order, self.meta)
-        for c in self.columns:
-            row.setdefault(c, 0)
-        return pd.DataFrame([row])[self.columns]
-
-    def predict(self, order):
-        x = self._prepare_df(order)
-        return float(self.booster.predict(x)[0])
-
-    def predict_interval(self, order):
-        x = self._prepare_df(order)
-        point = float(self.booster.predict(x)[0])
-        p10 = float(self.booster_p10.predict(x)[0]) if self.booster_p10 is not None else round(point * 0.95, 2)
-        p90 = float(self.booster_p90.predict(x)[0]) if self.booster_p90 is not None else round(point * 1.05, 2)
-        lower = min(p10, p90, point)
-        upper = max(p10, p90, point)
-        return point, lower, upper
-
-    def explain_prediction(self, order, top_k=3):
-        import xgboost as xgb
-        df = self._prepare_df(order)
-        dmat = xgb.DMatrix(df)
-        raw_booster = getattr(self.booster, "get_booster", lambda: self.booster)()
-        contribs = raw_booster.predict(dmat, pred_contribs=True)[0]
-        feat_contribs = dict(zip(self.columns, contribs[:-1]))
-        base_val = float(contribs[-1])
-
-        # Group one-hot product categories and truck types into unified driver attributions
-        unified = {}
-        cat_sum = sum(val for k, val in feat_contribs.items() if k.startswith("cat_"))
-        truck_sum = sum(val for k, val in feat_contribs.items() if k.startswith("truck_"))
-        for k, val in feat_contribs.items():
-            if not k.startswith("cat_") and not k.startswith("truck_"):
-                unified[k] = float(val)
-        if cat_sum != 0:
-            unified["product_category"] = float(cat_sum)
-        if truck_sum != 0:
-            unified["truck_type"] = float(truck_sum)
-
-        sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)
-        return {
-            "base_value": round(base_val, 2),
-            "attributions": {k: round(v, 2) for k, v in unified.items()},
-            "top_drivers": [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:top_k]]
-        }
-
-
 def build_model2_features(pred, order, context, m1):
     """`order`: dict with distance_km/ideal_days/quoted_days/... (from
     orders table). `context`: dict with adverse_weather_days,
@@ -182,7 +122,7 @@ def build_model2_features(pred, order, context, m1):
         "cost_interval_upper": p90,
         "cost_mismatch": mismatch,
         "cost_mismatch_upper": cost_upper,
-        "top_drivers": shap_info["top_drivers"],
+        "top_drivers": shap_info["breakdown"],
         "actual_days": days,
         "true_delay_days": true_delay,
         "commercial_delay_days": comm_delay,
@@ -200,10 +140,10 @@ def build_model2_features(pred, order, context, m1):
     }
 
 
-def score_model2(features, m2):
-    import pandas as pd
-    x = pd.DataFrame([features])[MODEL2_FEATURES]
-    return float(m2.predict_proba(x)[0, 1])
+def score_model2(features, m2, fuel_price=None):
+    """`m2` is an InvoiceRiskModel; `fuel_price` is the order's diesel price,
+    used to express rupee features in training-period rupees."""
+    return m2.predict_proba(features, fuel_price)
 
 
 def causal_vendor_risk(total_invoices, flagged_invoices, alpha=2, prior=0.06):

@@ -20,5 +20,22 @@
   ],
   "threshold": 0.5,
   "target": "requires_manual_review",
-  "notes": "clean invoices first: dedup invoice_id, upper() vendor_id, drop actual_billed_amount<=0. anomaly_type is NEVER a feature."
+  "monotone_constraints": {
+    "cost_mismatch_ratio": 1,
+    "cost_mismatch_upper_ratio": 1,
+    "billed_to_p90_ratio": 1,
+    "zero_delay_p90_breach": 1
+  },
+  "rupee_deflator": {
+    "reference_fuel_price": 91.4753,
+    "features": [
+      "actual_billed_amount",
+      "model_a_predicted_cost",
+      "cost_mismatch",
+      "cost_mismatch_upper",
+      "excess_rate_per_kg",
+      "excess_rate_per_ton_km"
+    ]
+  },
+  "notes": "Clean invoices first (dedup invoice_id, upper() vendor_id, drop billed<=0). Features are computed from Model 1 outputs; see backend/audit_core.build_model2_features. anomaly_type is never a feature."
 }

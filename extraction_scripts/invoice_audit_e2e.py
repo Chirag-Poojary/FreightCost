@@ -74,17 +74,11 @@ except Exception:
 # -------------------------------------------------------------------------
 # 1. LOAD MODELS & SCHEMAS
 # -------------------------------------------------------------------------
-M1 = joblib.load(os.path.join(MODELS_DIR, "model_1_freight_cost.joblib"))
-p10_path = os.path.join(MODELS_DIR, "model_1_freight_cost_p10.joblib")
-p90_path = os.path.join(MODELS_DIR, "model_1_freight_cost_p90.joblib")
-M1_P10 = joblib.load(p10_path) if os.path.exists(p10_path) else None
-M1_P90 = joblib.load(p90_path) if os.path.exists(p90_path) else None
-with open(os.path.join(MODELS_DIR, "model_1_features.json")) as f:
-    M1_CONFIG = json.load(f)
-
-M2 = joblib.load(os.path.join(MODELS_DIR, "model_2_invoice_risk.joblib"))
-with open(os.path.join(MODELS_DIR, "model_2_features.json")) as f:
-    M2_CONFIG = json.load(f)
+from freight_models import FreightCostModel, InvoiceRiskModel, load_bundle  # noqa: E402
+M1 = FreightCostModel(load_bundle(os.path.join(MODELS_DIR, "model_1_freight_cost.pkl")))
+M1_CONFIG = M1.meta
+M2 = InvoiceRiskModel(load_bundle(os.path.join(MODELS_DIR, "model_2_invoice_risk.pkl")))
+M2_CONFIG = {"features": M2.features, "threshold": M2.threshold}
 
 # -------------------------------------------------------------------------
 # 2. LOAD DATASETS & REFERENCE TABLES
@@ -311,41 +305,15 @@ def predict_should_cost(distance_km, ideal_days, quoted_days, weight_kg,
     truck_type = ("6-wheeler" if billable_weight <= 9000
                   else "10-wheeler" if billable_weight <= 16000 else "12-wheeler")
 
-    row = {
-        "distance_km": float(distance_km),
-        "ideal_days": float(ideal_days),
-        "quoted_days": float(quoted_days),
-        "billable_weight_kg": float(billable_weight),
+    order = {
+        "distance_km": float(distance_km), "ideal_days": float(ideal_days),
+        "quoted_days": float(quoted_days), "billable_weight_kg": float(billable_weight),
         "expected_fuel_price": float(expected_fuel_price),
         "expected_weather_score": float(expected_weather_score),
+        "product_category": product_category, "truck_type": truck_type,
     }
-    for c in M1_CONFIG["product_categories"]:
-        row[f"cat_{c}"] = int(product_category == c)
-    for t in M1_CONFIG["truck_types"]:
-        row[f"truck_{t}"] = int(truck_type == t)
-
-    X = pd.DataFrame([row])[M1_CONFIG["column_order"]]
-    should_cost = float(M1.predict(X)[0])
-    p10 = float(M1_P10.predict(X)[0]) if M1_P10 is not None else should_cost * 0.95
-    p90 = float(M1_P90.predict(X)[0]) if M1_P90 is not None else should_cost * 1.05
-    lower = min(p10, p90, should_cost)
-    upper = max(p10, p90, should_cost)
-
-    import xgboost as xgb
-    dmat = xgb.DMatrix(X)
-    raw_booster = getattr(M1, "get_booster", lambda: M1)()
-    contribs = raw_booster.predict(dmat, pred_contribs=True)[0]
-    raw_dict = dict(zip(M1_CONFIG["column_order"], contribs[:-1]))
-    unified = {}
-    cat_sum = sum(v for k, v in raw_dict.items() if k.startswith("cat_"))
-    truck_sum = sum(v for k, v in raw_dict.items() if k.startswith("truck_"))
-    for k, v in raw_dict.items():
-        if not k.startswith("cat_") and not k.startswith("truck_"):
-            unified[k] = float(v)
-    if cat_sum: unified["product_category"] = float(cat_sum)
-    if truck_sum: unified["truck_type"] = float(truck_sum)
-    sorted_drivers = sorted(unified.items(), key=lambda kv: abs(kv[1]), reverse=True)
-    top_drivers = [{"feature": k, "impact": round(v, 2)} for k, v in sorted_drivers[:3]]
+    should_cost, lower, upper = M1.predict_interval(order)
+    top_drivers = M1.explain_prediction(order, top_k=3)["top_drivers"]
 
     return should_cost, lower, upper, truck_type, top_drivers
 
@@ -356,7 +324,8 @@ def predict_should_cost(distance_km, ideal_days, quoted_days, weight_kg,
 def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, actual_days,
                        ideal_days, quoted_days, adverse_weather_days,
                        vendor_id, vendor_padding_ratio=None, vendor_historical_risk=None,
-                       p90=None, billable_weight_kg=10000.0, distance_km=1000.0):
+                       p90=None, billable_weight_kg=10000.0, distance_km=1000.0,
+                       fuel_price=None):
     cost_mismatch = actual_billed_amount - model_a_predicted_cost
     true_delay = max(0.0, actual_days - ideal_days)
     commercial_delay = max(0.0, actual_days - quoted_days)
@@ -395,8 +364,7 @@ def score_invoice_risk(actual_billed_amount, model_a_predicted_cost, actual_days
         "zero_delay_p90_breach": 1.0 if (billed > p90_val and commercial_delay <= 0.2) else 0.0,
     }
 
-    X = pd.DataFrame([feature_row])[M2_CONFIG["features"]]
-    risk_proba = float(M2.predict_proba(X)[0, 1])
+    risk_proba = M2.predict_proba(feature_row, fuel_price)
     flag_for_review = int(risk_proba >= M2_CONFIG["threshold"])
 
     return risk_proba, flag_for_review, feature_row
@@ -552,7 +520,8 @@ def audit_invoice(image_path, extractor="llm", provider="groq", model=None, new_
         vendor_id=ven_id or "VEN001",
         p90=p90,
         billable_weight_kg=max(float(weight_kg), float(dim_weight_kg)),
-        distance_km=distance_km
+        distance_km=distance_km,
+        fuel_price=fuel_price,
     )
 
     # Step 7: Audit Rationale

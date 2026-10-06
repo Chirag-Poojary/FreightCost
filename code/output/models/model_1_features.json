@@ -1,4 +1,5 @@
 {
+  "design": "predicted = baseline(fuel+toll+driver) * xgb_ratio",
   "numeric": [
     "distance_km",
     "ideal_days",
@@ -35,14 +36,54 @@
     "truck_10-wheeler",
     "truck_12-wheeler"
   ],
-  "target": "base_freight_cost",
+  "target": "base_freight_cost / baseline",
+  "baseline_constants": {
+    "mileage_kmpl": {
+      "12-wheeler": 4.0,
+      "10-wheeler": 4.6,
+      "6-wheeler": 6.5
+    },
+    "toll_rate_per_km": 1.75,
+    "driver_allowance_per_day": 1200.0
+  },
+  "price_bounds": {
+    "cost_per_km_min": 7.71,
+    "cost_per_km_max": 83.29,
+    "billed_low_ratio": 0.724,
+    "billed_high_ratio": 22.789,
+    "billed_high_abs": 18554.0,
+    "derived_from": "56,543 genuine invoices, out-of-fold fair cost"
+  },
+  "training_ranges": {
+    "distance_km": {
+      "min": 33.1,
+      "max": 2852.8
+    },
+    "ideal_days": {
+      "min": 0.04,
+      "max": 2.01
+    },
+    "quoted_days": {
+      "min": 0.0,
+      "max": 2.7
+    },
+    "billable_weight_kg": {
+      "min": 5000.09,
+      "max": 33232.9
+    },
+    "expected_fuel_price": {
+      "min": 86.6,
+      "max": 97.35
+    },
+    "expected_weather_score": {
+      "min": 0.0,
+      "max": 13.0
+    }
+  },
   "prediction_interval": {
     "alphas": [
       0.1,
       0.9
-    ],
-    "p10_artifact": "model_1_freight_cost_p10.joblib",
-    "p90_artifact": "model_1_freight_cost_p90.joblib"
-  },
-  "notes": "one-hot product_category (cat_*) and truck_type (truck_*); truck_type = assign_truck_type(weight_kg); impute missing expected_weather_score with month median."
+    ]
+  }
 }

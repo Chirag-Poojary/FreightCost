@@ -89,37 +89,35 @@ calibrated modeled sources instead of real data — everything else is identical
 
 | File | Purpose |
 |---|---|
-| `model_1_freight_cost.joblib` | Freight should-cost regressor (sklearn API) |
-| `model_1_freight_cost.json` | Same model as a portable xgboost booster |
-| `model_1_features.json` | Model 1 input schema + one-hot column order |
-| `model_2_invoice_risk.joblib` | Invoice-risk classifier |
+| `model_1_freight_cost.pkl` | Model 1 bundle: point/P10/P90 regressors + schema + cost constants + price bounds |
+| `model_1_freight_cost*.json` | Same boosters as portable xgboost files (they predict the ratio to the cost baseline) |
+| `model_1_features.json` | Model 1 input schema, column order, baseline constants, price bounds |
+| `model_2_invoice_risk.pkl` | Model 2 bundle: classifier + feature list + threshold + diesel deflator |
 | `model_2_invoice_risk.json` | Portable xgboost booster |
 | `model_2_features.json` | Model 2 feature list + decision threshold (0.5) |
-| `metadata.json` | Metrics + library versions |
+| `metadata.json` | Metrics (old vs new design), stress tests, library versions |
 | `predict_example.py` | Runnable load-and-predict demo |
 
-Reference metrics (real-data, seed 42): Model 1 holdout **MAE ₹513 / MAPE 1.65%**;
-Model 2 **PR-AUC 0.84, recall 0.89, precision 0.49**.
+See `docs/operations/milestone_4_extrapolation_and_price_checks.md` for the
+current metrics and the out-of-range stress tests.
 
 ---
 
 ## D. Use the models in a website
 
 ```python
-import json, joblib, pandas as pd
-M1  = joblib.load("model_1_freight_cost.joblib")
-M1F = json.load(open("model_1_features.json"))
-M2  = joblib.load("model_2_invoice_risk.joblib")
-M2F = json.load(open("model_2_features.json"))
+from freight_models import FreightCostModel, InvoiceRiskModel, check_inputs, load_bundle
+M1 = FreightCostModel(load_bundle("model_1_freight_cost.pkl"))
+M2 = InvoiceRiskModel(load_bundle("model_2_invoice_risk.pkl"))
+fair, lo, hi = M1.predict_interval(order)          # order: dict of the 6 numerics + category + truck
+check = M1.check_billed(billed, fair, lo, hi)      # ok / too_low / too_high / invalid
 ```
 
-- **Model 1** — build the feature row exactly as `predict_example.py` does: the 6
-  numeric fields + one-hot `product_category` (`cat_*`) + one-hot `truck_type`
-  (`truck_*`, derived from `weight_kg`), ordered by `model_1_features['column_order']`.
-- **Model 2** — the 9 features in `model_2_features['features']`; feed Model 1's
-  output as `model_a_predicted_cost`; flag when `proba >= threshold`.
-- Wrap the two functions in `predict_example.py` in a Flask/FastAPI endpoint. Load
-  the models **once** at server start, not per request.
+- **Model 1** -- always call `check_inputs(order)` first; `predict_interval`
+  multiplies the fuel + toll + driver baseline by the learned correction.
+- **Model 2** -- build features with `backend/audit_core.build_model2_features`
+  and score with `M2.predict_proba(features, fuel_price=order["expected_fuel_price"])`.
+- Load the bundles **once** at server start, not per request.
 - For a non-Python backend, load the native `.json` boosters via any xgboost binding.
 
 ---

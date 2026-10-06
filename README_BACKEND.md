@@ -35,7 +35,7 @@ The backend operates as an API service that connects OCR document extraction, pr
 
 1. **[`backend/audit_core.py`](backend/audit_core.py)**: Completely storage-agnostic. Implements the 4-tier confidence validation gate, Model 1 wrapper, Model 2 feature builder, causal Laplace vendor risk calculation, and model scoring. Operates exclusively on pure Python dictionaries without database or filesystem coupling.
 2. **[`backend/db.py`](backend/db.py)**: Encapsulates all network communication with Supabase. Contains single-point queries for referential validation, historical context retrieval, audit log insertion, and atomic vendor risk counters.
-3. **[`backend/main.py`](backend/main.py)**: Exposes REST API endpoints, loads ML models (`model_1_freight_cost.joblib` and `model_2_invoice_risk.joblib`) into memory on startup, manages CORS, and coordinates the end-to-end audit lifecycle.
+3. **[`backend/main.py`](backend/main.py)**: Exposes REST API endpoints, loads the ML model bundles (`model_1_freight_cost.pkl` and `model_2_invoice_risk.pkl`, via `code/freight_models.py`) into memory on startup, runs the price logic checks, manages CORS, and coordinates the end-to-end audit lifecycle.
 4. **[`backend/schema.sql`](backend/schema.sql)**: DDL defining PostgreSQL tables, indexes, and analytical views for both static reference data and dynamic operational audit trails.
 5. **[`backend/migrate_to_supabase.py`](backend/migrate_to_supabase.py)**: Resilient batch migration script that loads pre-generated baseline CSVs into Supabase.
 
