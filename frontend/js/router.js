@@ -8,7 +8,7 @@ const router = {
     "#audit": { sectionId: "audit-page", onShow: () => {} },
     "#dashboard": { sectionId: "dashboard-page", onShow: () => window.dashboardPage?.load() },
     "#vendors": { sectionId: "vendors-page", onShow: () => window.vendorsPage?.load() },
-    "#quote": { sectionId: "quote-page", onShow: () => {} },
+    "#quote": { sectionId: "quote-page", onShow: () => { if (typeof quotePage !== "undefined") quotePage.onShow(); } },
   },
 
   defaultHash: "#audit",

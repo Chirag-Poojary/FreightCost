@@ -136,7 +136,7 @@ PROVIDERS = {
     "groq": {
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "key_env": "GROQ_API_KEY",
-        "model": "qwen/qwen3.8-27b",
+        "model": os.environ.get("GROQ_TEXT_MODEL", "llama-3.3-70b-versatile"),
     },
 }
 

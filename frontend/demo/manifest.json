@@ -1,0 +1,68 @@
+[
+ {
+  "image": "INV037976.png",
+  "label": "Clean invoice (classic layout)",
+  "ground_truth": {
+   "invoice_id": "INV037976",
+   "order_id": "ORD042771",
+   "vendor_id": "VEN022",
+   "invoice_date": "27-11-2024",
+   "origin": "Visakhapatnam",
+   "destination": "Jaipur",
+   "truck_type": "12-wheeler",
+   "actual_days": "3.02",
+   "weight_kg": "16480",
+   "distance_km": "1759.8",
+   "detention_days": "1.52",
+   "freight_base": 41360.17,
+   "detention": 2280.0,
+   "toll": 3079.65,
+   "total": 46719.82,
+   "gstin": "34ABCDE6625F1Z6"
+  }
+ },
+ {
+  "image": "INV047172.png",
+  "label": "Clean invoice (modern layout)",
+  "ground_truth": {
+   "invoice_id": "INV047172",
+   "order_id": "ORD008521",
+   "vendor_id": "VEN004",
+   "invoice_date": "08-05-2025",
+   "origin": "Surat",
+   "destination": "Nagpur",
+   "truck_type": "12-wheeler",
+   "actual_days": "0.54",
+   "weight_kg": "16026",
+   "distance_km": "754.7",
+   "detention_days": "0.00",
+   "freight_base": 16501.68,
+   "detention": 0.0,
+   "toll": 1320.73,
+   "total": 17822.41,
+   "gstin": "33ABCDE6476F1Z4"
+  }
+ },
+ {
+  "image": "INV036202.png",
+  "label": "Suspicious: inflated toll",
+  "ground_truth": {
+   "invoice_id": "INV036202",
+   "order_id": "ORD052238",
+   "vendor_id": "VEN019",
+   "invoice_date": "24-10-2024",
+   "origin": "Ahmedabad",
+   "destination": "Pune",
+   "truck_type": "12-wheeler",
+   "actual_days": "2.88",
+   "weight_kg": "19312",
+   "distance_km": "657.0",
+   "detention_days": "2.38",
+   "freight_base": 18730.01,
+   "detention": 3570.0,
+   "toll": 1149.75,
+   "total": 23449.76,
+   "gstin": "34ABCDE7433F1Z3"
+  }
+ }
+]

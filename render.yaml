@@ -11,7 +11,27 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_KEY
         sync: false
+      # Invoice extraction -- set at least one. Gemini is the recommended primary.
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-3.5-flash
       - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_VISION_MODEL
+        value: qwen/qwen3.6-27b
+      - key: GROQ_TEXT_MODEL
+        value: llama-3.3-70b-versatile
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        sync: false
+      # Optional: Qwen3-VL-4B self-hosted on a cloud GPU (vLLM/TGI/Ollama, OpenAI-compatible URL)
+      - key: CLOUD_VLM_URL
+        sync: false
+      - key: CLOUD_VLM_MODEL
+        sync: false
+      - key: CLOUD_VLM_API_KEY
         sync: false
       - key: ORS_API_KEY
         sync: false

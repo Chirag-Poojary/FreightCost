@@ -41,12 +41,14 @@ async function apiCall(path, options = {}) {
     const res = await fetch(url, options);
     if (!res.ok) {
       let errDetail = `${res.status} ${res.statusText}`;
+      const rawText = await res.text();
       try {
-        const errJson = await res.json();
-        errDetail = errJson.detail || JSON.stringify(errJson);
+        const d = JSON.parse(rawText).detail;
+        if (typeof d === "string") errDetail = d;
+        else if (d && d.message) errDetail = d.message + (d.missing_fields ? ` (${d.missing_fields.join(", ")})` : "");
+        else if (d) errDetail = JSON.stringify(d);
       } catch (_) {
-        const rawText = await res.text();
-        if (rawText) errDetail = rawText;
+        if (rawText) errDetail = rawText.slice(0, 300);
       }
       throw new Error(errDetail);
     }
@@ -61,13 +63,34 @@ const api = {
   /**
    * Post an invoice file to the audit pipeline
    */
-  audit: (file, extractor = "qwen3-vl", provider = "groq") => {
+  extract: (file, extractor = "auto") => {
     const form = new FormData();
     form.append("file", file);
-    return apiCall(
-      `/api/audit?extractor=${encodeURIComponent(extractor)}&provider=${encodeURIComponent(provider)}`,
-      { method: "POST", body: form }
-    );
+    return apiCall(`/api/extract?extractor=${encodeURIComponent(extractor)}`, { method: "POST", body: form });
+  },
+
+  /** Re-validate user-edited fields (order exists, vendor matches, line items add up). */
+  check: (payload) => apiCall("/api/check", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }),
+
+  /** Run gate + Model 1 + Model 2 on confirmed fields. */
+  score: (payload) => apiCall("/api/score", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  }),
+
+  extractors: () => apiCall("/api/extractors"),
+
+  /** Live diesel price + Open-Meteo weather for a route and date. */
+  context: (origin, dest, shipDate, transitDays) => {
+    const q = new URLSearchParams({ origin_hub_id: origin, dest_hub_id: dest });
+    if (shipDate) q.set("ship_date", shipDate);
+    if (transitDays) q.set("transit_days", transitDays);
+    return apiCall(`/api/context?${q}`);
   },
 
   /**

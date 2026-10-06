@@ -6,7 +6,8 @@ supabase
 pandas
 numpy
 joblib
-xgboost
+xgboost==3.4.1
+scikit-learn==1.9.1
 pytesseract
 Pillow
 requests

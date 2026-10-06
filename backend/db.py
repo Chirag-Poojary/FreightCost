@@ -66,6 +66,7 @@ class LocalDb:
             return {
                 "adverse_weather_days": float(row.get("adverse_weather_days", 0.0) or 0.0),
                 "vendor_padding_ratio": float(row.get("vendor_padding_ratio", 0.0) or 0.0),
+                "_from_reference": True,
             }
         return {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
 
@@ -164,7 +165,8 @@ class Db:
             .eq("order_id", order_id).limit(1).execute())
         if r.data:
             return {"adverse_weather_days": r.data[0]["adverse_weather_days"] or 0.0,
-                   "vendor_padding_ratio": r.data[0]["vendor_padding_ratio"] or 0.0}
+                   "vendor_padding_ratio": r.data[0]["vendor_padding_ratio"] or 0.0,
+                   "_from_reference": True}
         return {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
 
     def get_ground_truth(self, order_id):
