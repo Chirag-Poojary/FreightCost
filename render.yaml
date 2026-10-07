@@ -15,13 +15,13 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-3.5-flash
+        value: gemini-3.8-flash
       - key: GROQ_API_KEY
         sync: false
       - key: GROQ_VISION_MODEL
-        value: qwen/qwen3.6-27b
+        value: qwen/qwen3.8-27b
       - key: GROQ_TEXT_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-120b
       - key: OPENROUTER_API_KEY
         sync: false
       - key: OPENROUTER_MODEL

@@ -47,7 +47,7 @@ def _num(s):
         return None
 
 
-def confidence_gate(pred, order_exists, vendor_exists):
+def confidence_gate(pred, order_exists=None, vendor_exists=None, allow_new_vendors=True, allow_new_orders=True):
     """4-tier validation. `order_exists`/`vendor_exists` are callables
     (id -> bool) so the caller decides where that lookup happens --
     an in-memory pandas index for the CLI, a Supabase point query for the
@@ -56,9 +56,9 @@ def confidence_gate(pred, order_exists, vendor_exists):
     if missing:
         return False, f"missing_critical_field:{','.join(missing)}"
 
-    if not order_exists(pred["order_id"]):
+    if not allow_new_orders and order_exists and not order_exists(pred["order_id"]):
         return False, "order_id_not_found"
-    if not vendor_exists(pred["vendor_id"]):
+    if not allow_new_vendors and vendor_exists and not vendor_exists(pred["vendor_id"]):
         return False, "vendor_id_not_found"
 
     total = _num(pred["total"])
@@ -148,5 +148,8 @@ def score_model2(features, m2, fuel_price=None):
 
 def causal_vendor_risk(total_invoices, flagged_invoices, alpha=2, prior=0.06):
     """Same Laplace-smoothed formula as build_dataset.py's add_vendor_risk().
-    Called with the vendor's stats BEFORE this invoice, to keep it causal."""
+    Called with the vendor's stats BEFORE this invoice, to keep it causal.
+    If the vendor is new (total_invoices == 0), defaults to 0.0."""
+    if not total_invoices or total_invoices <= 0:
+        return 0.0
     return (flagged_invoices + alpha * prior) / (total_invoices + alpha)

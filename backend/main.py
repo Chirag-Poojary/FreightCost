@@ -121,22 +121,103 @@ def list_extractors():
 
 
 # ------------------------------------------------------------------ checks
+def _find_hub_for_city(city_name):
+    if not city_name:
+        return None, None
+    clean = str(city_name).strip().lower()
+    try:
+        h = live_context.hubs()
+        for hub_id, row in h.iterrows():
+            c = str(row["city"]).strip().lower()
+            if c == clean or hub_id.lower() == clean:
+                return hub_id, str(row.get("state") or "")
+        for hub_id, row in h.iterrows():
+            c = str(row["city"]).strip().lower()
+            if clean in c or c in clean:
+                return hub_id, str(row.get("state") or "")
+    except Exception:
+        pass
+    return None, None
+
+
+def _synthesize_order(fields, db):
+    orig_city = fields.get("origin")
+    dest_city = fields.get("destination")
+    orig_hub, orig_state = _find_hub_for_city(orig_city)
+    dest_hub, dest_state = _find_hub_for_city(dest_city)
+
+    dist = None
+    ideal = None
+    if orig_hub and dest_hub:
+        r_info = live_context.route_info(orig_hub, dest_hub)
+        if r_info:
+            dist = r_info.get("distance_km")
+            ideal = r_info.get("ideal_days")
+
+    toll = float(fields.get("toll") or 0.0)
+    actual_days = float(fields.get("actual_days") or 1.0)
+    if not dist or dist <= 0:
+        if toll > 100:
+            dist = round(toll / 1.75, 1)
+        else:
+            dist = round(max(100.0, actual_days * 350.0), 1)
+
+    if not ideal or ideal <= 0:
+        ideal = round(max(0.5, dist / 500.0), 2)
+
+    weight = float(fields.get("weight_kg") or 0.0)
+    if weight <= 0:
+        weight = 5000.0
+
+    truck = fields.get("truck_type")
+    valid_trucks = ["6-wheeler", "10-wheeler", "12-wheeler"]
+    if truck not in valid_trucks:
+        if weight <= 7000:
+            truck = "6-wheeler"
+        elif weight <= 14000:
+            truck = "10-wheeler"
+        else:
+            truck = "12-wheeler"
+
+    order_date = fields.get("invoice_date") or str(live_context.date.today())
+    state = dest_state or orig_state or "Maharashtra"
+    fuel_info = live_context.get_diesel(state, order_date)
+    fuel_price = fuel_info.get("price") or 95.0
+
+    return {
+        "order_id": fields.get("order_id", "NEW_ORDER"),
+        "vendor_id": fields.get("vendor_id", "NEW_VENDOR"),
+        "origin_hub_id": orig_hub or "HUB01",
+        "dest_hub_id": dest_hub or "HUB02",
+        "product_category": "Automotive Spare Parts",
+        "order_date": order_date,
+        "weight_kg": weight,
+        "billable_weight_kg": weight,
+        "quoted_days": max(ideal, actual_days),
+        "ideal_days": ideal,
+        "distance_km": dist,
+        "truck_type": truck,
+        "state": state,
+        "expected_fuel_price": fuel_price,
+        "expected_weather_score": 0.0,
+        "_synthesized": True,
+    }
+
+
 def _field_checks(fields, db):
     """Per-field problems the user should see before scoring. Does not block
     extraction; /api/score enforces the gate."""
     issues = {}
     order = None
-    if fields.get("order_id"):
-        if db.order_exists(fields["order_id"]):
-            order = db.get_order(fields["order_id"])
-        else:
-            issues["order_id"] = "Not found in the order master (ERP)."
-    if fields.get("vendor_id") and not db.vendor_exists(fields["vendor_id"]):
-        issues["vendor_id"] = "Not a registered carrier."
+    if fields.get("order_id") and db.order_exists(fields["order_id"]):
+        order = db.get_order(fields["order_id"])
+
+    # If the order is in ERP and was booked with a different vendor, flag the mismatch
     if order and fields.get("vendor_id") and order.get("vendor_id") \
             and order["vendor_id"] != fields["vendor_id"]:
         issues["vendor_id"] = (f"Order {fields['order_id']} was booked with "
                                f"{order['vendor_id']}, not {fields['vendor_id']}.")
+
     parts = [fields.get(k) for k in ("freight_base", "detention", "toll")]
     total = fields.get("total")
     if total is not None and all(p is not None for p in parts):
@@ -161,6 +242,20 @@ def _field_checks(fields, db):
             "truck_type": order.get("truck_type"),
             "billable_weight_kg": round(float(order.get("billable_weight_kg") or 0), 1),
             "quoted_days": order.get("quoted_days"),
+        }
+    elif fields.get("origin") or fields.get("destination") or fields.get("order_id"):
+        wt = round(float(fields.get("weight_kg") or 0), 1)
+        truck = fields.get("truck_type") or ("6-wheeler" if wt <= 7000 else "10-wheeler" if wt <= 14000 else "12-wheeler")
+        summary = {
+            "order_id": fields.get("order_id") or "New Order",
+            "vendor_id": fields.get("vendor_id") or "New Carrier",
+            "origin": fields.get("origin") or "Direct Route",
+            "destination": fields.get("destination") or "Direct Route",
+            "order_date": str(fields.get("invoice_date") or ""),
+            "truck_type": truck,
+            "billable_weight_kg": wt,
+            "quoted_days": fields.get("actual_days") or 1.0,
+            "is_new": True,
         }
     return issues, summary
 
@@ -209,9 +304,12 @@ def _transit_weather(order, fields):
     """Observed weather over the actual transit window from Open-Meteo:
     invoice_date - actual_days -> invoice_date, at the destination hub."""
     try:
+        dest_hub = order.get("dest_hub_id")
+        if not dest_hub:
+            return {"ok": False, "source": "unavailable", "error": "no destination hub"}
         end = live_context._to_date(fields["invoice_date"])
         start = end - timedelta(days=max(1, int(round(float(fields["actual_days"]) + 0.49))))
-        return live_context.get_weather(order["dest_hub_id"], start, end)
+        return live_context.get_weather(dest_hub, start, end)
     except Exception as e:
         return {"ok": False, "source": "unavailable", "error": str(e)[:200]}
 
@@ -243,10 +341,22 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
         _log(db, result)
         return result
 
-    order = dict(db.get_order(fields["order_id"]))
-    ref_ctx = db.get_reference_invoice_context(fields["order_id"])
+    order_in_db = db.get_order(fields["order_id"])
+    if order_in_db:
+        order = dict(order_in_db)
+        ref_ctx = db.get_reference_invoice_context(fields["order_id"])
+    else:
+        order = _synthesize_order(fields, db)
+        ref_ctx = {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
+
     vstats = db.get_vendor_stats(fields["vendor_id"])
-    vendor_risk = causal_vendor_risk(vstats["total_invoices"], vstats["flagged_invoices"])
+    ctx_notes = []
+    # If the vendor is new or has no historical records, default risk score to 0.0 as requested
+    if not db.vendor_exists(fields["vendor_id"]) or not vstats.get("total_invoices"):
+        vendor_risk = 0.0
+        ctx_notes.append("New carrier: historical risk score defaulted to 0.0%")
+    else:
+        vendor_risk = causal_vendor_risk(vstats["total_invoices"], vstats["flagged_invoices"])
 
     # Fill any order-level inputs the ERP row lacks from live sources.
     ctx_notes = []

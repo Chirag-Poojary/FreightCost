@@ -82,7 +82,7 @@ class LocalDb:
     def get_vendor_stats(self, vendor_id):
         if vendor_id in self.vendor_stats:
             return self.vendor_stats[vendor_id].copy()
-        return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0}
+        return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0, "risk_score": 0.0}
 
     def bump_vendor_stats(self, vendor_id, was_flagged):
         st = self.get_vendor_stats(vendor_id)
@@ -214,7 +214,7 @@ class Db:
                     .eq("vendor_id", vendor_id).limit(1).execute())
                 if r.data:
                     return r.data[0]
-                return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0}
+                return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0, "risk_score": 0.0}
             except Exception as e:
                 print(f"[Db] get_vendor_stats remote error ({e}), using local fallback")
         return self._get_local().get_vendor_stats(vendor_id)
