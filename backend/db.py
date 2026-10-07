@@ -126,99 +126,149 @@ class Db:
     def __init__(self, url=None, key=None):
         url = url or os.environ.get("SUPABASE_URL")
         key = key or os.environ.get("SUPABASE_SERVICE_KEY")
+        self._local = None
+        self.client = None
+
         if not url or not key:
             print("[Db] SUPABASE_URL / SUPABASE_SERVICE_KEY not provided. Running in Local CSV Database mode.")
             self._local = LocalDb()
-            self.client = None
         else:
-            self._local = None
-            from supabase import create_client
-            import re
-            url = re.sub(r"/rest/v1/?$", "", str(url).strip()).rstrip("/")
-            key = str(key).strip()
-            self.client = create_client(url, key)
+            try:
+                from supabase import create_client
+                import re
+                clean_url = re.sub(r"/rest/v1/?$", "", str(url).strip()).rstrip("/")
+                clean_key = str(key).strip()
+                client = create_client(clean_url, clean_key)
+                # Verify network reachability with a fast check
+                client.table("orders").select("order_id").limit(1).execute()
+                self.client = client
+                print("[Db] Connected to Supabase successfully.")
+            except Exception as e:
+                print(f"[Db] Supabase connection failed ({e}). Falling back to Local CSV Database mode.")
+                self.client = None
+                self._local = LocalDb()
+
+    def _get_local(self):
+        if self._local is None:
+            self._local = LocalDb()
+        return self._local
 
     # ---------------------------------------------------------- reference
     def order_exists(self, order_id):
-        if self._local:
-            return self._local.order_exists(order_id)
-        r = self.client.table("orders").select("order_id").eq("order_id", order_id).execute()
-        return len(r.data) > 0
+        if self.client:
+            try:
+                r = self.client.table("orders").select("order_id").eq("order_id", order_id).execute()
+                return len(r.data) > 0
+            except Exception as e:
+                print(f"[Db] order_exists remote error ({e}), using local fallback")
+        return self._get_local().order_exists(order_id)
 
     def vendor_exists(self, vendor_id):
-        if self._local:
-            return self._local.vendor_exists(vendor_id)
-        r = self.client.table("vendors").select("vendor_id").eq("vendor_id", vendor_id).execute()
-        return len(r.data) > 0
+        if self.client:
+            try:
+                r = self.client.table("vendors").select("vendor_id").eq("vendor_id", vendor_id).execute()
+                return len(r.data) > 0
+            except Exception as e:
+                print(f"[Db] vendor_exists remote error ({e}), using local fallback")
+        return self._get_local().vendor_exists(vendor_id)
 
     def get_order(self, order_id):
-        if self._local:
-            return self._local.get_order(order_id)
-        r = self.client.table("orders").select("*").eq("order_id", order_id).single().execute()
-        return r.data
+        if self.client:
+            try:
+                r = self.client.table("orders").select("*").eq("order_id", order_id).single().execute()
+                return r.data
+            except Exception as e:
+                print(f"[Db] get_order remote error ({e}), using local fallback")
+        return self._get_local().get_order(order_id)
 
     def get_reference_invoice_context(self, order_id):
-        if self._local:
-            return self._local.get_reference_invoice_context(order_id)
-        r = (self.client.table("reference_invoices")
-            .select("adverse_weather_days, vendor_padding_ratio")
-            .eq("order_id", order_id).limit(1).execute())
-        if r.data:
-            return {"adverse_weather_days": r.data[0]["adverse_weather_days"] or 0.0,
-                   "vendor_padding_ratio": r.data[0]["vendor_padding_ratio"] or 0.0,
-                   "_from_reference": True}
-        return {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
+        if self.client:
+            try:
+                r = (self.client.table("reference_invoices")
+                    .select("adverse_weather_days, vendor_padding_ratio")
+                    .eq("order_id", order_id).limit(1).execute())
+                if r.data:
+                    return {"adverse_weather_days": r.data[0]["adverse_weather_days"] or 0.0,
+                           "vendor_padding_ratio": r.data[0]["vendor_padding_ratio"] or 0.0,
+                           "_from_reference": True}
+                return {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
+            except Exception as e:
+                print(f"[Db] get_reference_invoice_context remote error ({e}), using local fallback")
+        return self._get_local().get_reference_invoice_context(order_id)
 
     def get_ground_truth(self, order_id):
-        if self._local:
-            return self._local.get_ground_truth(order_id)
-        r = (self.client.table("ground_truth_audit").select("*")
-            .eq("order_id", order_id).limit(1).execute())
-        return r.data[0] if r.data else None
+        if self.client:
+            try:
+                r = (self.client.table("ground_truth_audit").select("*")
+                    .eq("order_id", order_id).limit(1).execute())
+                return r.data[0] if r.data else None
+            except Exception as e:
+                print(f"[Db] get_ground_truth remote error ({e}), using local fallback")
+        return self._get_local().get_ground_truth(order_id)
 
     # --------------------------------------------------- vendor risk (causal)
     def get_vendor_stats(self, vendor_id):
-        if self._local:
-            return self._local.get_vendor_stats(vendor_id)
-        r = (self.client.table("vendor_running_stats").select("*")
-            .eq("vendor_id", vendor_id).limit(1).execute())
-        if r.data:
-            return r.data[0]
-        return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0}
+        if self.client:
+            try:
+                r = (self.client.table("vendor_running_stats").select("*")
+                    .eq("vendor_id", vendor_id).limit(1).execute())
+                if r.data:
+                    return r.data[0]
+                return {"vendor_id": vendor_id, "total_invoices": 0, "flagged_invoices": 0}
+            except Exception as e:
+                print(f"[Db] get_vendor_stats remote error ({e}), using local fallback")
+        return self._get_local().get_vendor_stats(vendor_id)
 
     def bump_vendor_stats(self, vendor_id, was_flagged):
-        if self._local:
-            return self._local.bump_vendor_stats(vendor_id, was_flagged)
-        stats = self.get_vendor_stats(vendor_id)
-        self.client.table("vendor_running_stats").upsert({
-            "vendor_id": vendor_id,
-            "total_invoices": stats["total_invoices"] + 1,
-            "flagged_invoices": stats["flagged_invoices"] + int(was_flagged),
-        }).execute()
+        if self.client:
+            try:
+                stats = self.get_vendor_stats(vendor_id)
+                self.client.table("vendor_running_stats").upsert({
+                    "vendor_id": vendor_id,
+                    "total_invoices": stats["total_invoices"] + 1,
+                    "flagged_invoices": stats["flagged_invoices"] + int(was_flagged),
+                }).execute()
+                return
+            except Exception as e:
+                print(f"[Db] bump_vendor_stats remote error ({e}), using local fallback")
+        return self._get_local().bump_vendor_stats(vendor_id, was_flagged)
 
     # --------------------------------------------------------------- audit_log
     def insert_audit_log(self, record):
-        if self._local:
-            return self._local.insert_audit_log(record)
-        self.client.table("audit_log").insert(record).execute()
+        if self.client:
+            try:
+                self.client.table("audit_log").insert(record).execute()
+                return
+            except Exception as e:
+                print(f"[Db] insert_audit_log remote error ({e}), using local fallback")
+        return self._get_local().insert_audit_log(record)
 
     def get_recent_audits(self, limit=50):
-        if self._local:
-            return self._local.get_recent_audits(limit)
-        r = (self.client.table("audit_log").select("*")
-            .order("created_at", desc=True).limit(limit).execute())
-        return r.data
+        if self.client:
+            try:
+                r = (self.client.table("audit_log").select("*")
+                    .order("created_at", desc=True).limit(limit).execute())
+                return r.data
+            except Exception as e:
+                print(f"[Db] get_recent_audits remote error ({e}), using local fallback")
+        return self._get_local().get_recent_audits(limit)
 
     def get_audit_stats(self, since_n=None):
-        if self._local:
-            return self._local.get_audit_stats(since_n)
-        q = self.client.table("audit_log").select("*").order("created_at", desc=True)
-        if since_n:
-            q = q.limit(since_n)
-        return q.execute().data
+        if self.client:
+            try:
+                q = self.client.table("audit_log").select("*").order("created_at", desc=True)
+                if since_n:
+                    q = q.limit(since_n)
+                return q.execute().data
+            except Exception as e:
+                print(f"[Db] get_audit_stats remote error ({e}), using local fallback")
+        return self._get_local().get_audit_stats(since_n)
 
     def get_vendor_leaderboard(self):
-        if self._local:
-            return self._local.get_vendor_leaderboard()
-        r = self.client.table("vendor_risk_scores").select("*").order("risk_score", desc=True).execute()
-        return r.data
+        if self.client:
+            try:
+                r = self.client.table("vendor_risk_scores").select("*").order("risk_score", desc=True).execute()
+                return r.data
+            except Exception as e:
+                print(f"[Db] get_vendor_leaderboard remote error ({e}), using local fallback")
+        return self._get_local().get_vendor_leaderboard()

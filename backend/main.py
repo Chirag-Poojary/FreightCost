@@ -53,9 +53,22 @@ from schemas import (AuditResult, ContextResponse, DashboardStats,  # noqa: E402
 
 MODEL_DIR = os.path.join(_BUNDLE_DIR, "code", "output", "models")
 
+from fastapi.responses import JSONResponse
+from fastapi import Request
+
 app = FastAPI(title="FreightCost Audit API", version="2.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    import traceback
+    traceback.print_exc()
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc)},
+        headers={"Access-Control-Allow-Origin": "*"}
+    )
 
 _db = None
 _m1 = None
@@ -222,8 +235,11 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
     if not passed:
         code = (reason or "").split(":")[0]
         result["field_errors"] = GATE_FIELD_MAP.get(code) or (reason.split(":")[1].split(",") if ":" in reason else [])
-        from audit_explanation import explain_rules
-        result["explanation"] = explain_rules({"passed": False, "reason": reason})
+        try:
+            from audit_explanation import explain_rules
+            result["explanation"] = explain_rules({"passed": False, "reason": reason})
+        except Exception:
+            result["explanation"] = f"Validation gate check failed: {reason}"
         _log(db, result)
         return result
 
@@ -284,12 +300,15 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
     flag_source = ("model+logic_check" if model_flag and rule_flag else
                    "logic_check" if rule_flag else "model" if model_flag else None)
 
-    from audit_explanation import explain_llm, explain_rules
     rec = {"passed": True, "predicted_flag": flagged, "proba": proba, "features": features}
     try:
-        explanation = explain_llm(rec, provider="groq")
-    except BaseException:
-        explanation = explain_rules(rec)
+        from audit_explanation import explain_llm, explain_rules
+        try:
+            explanation = explain_llm(rec, provider="groq")
+        except BaseException:
+            explanation = explain_rules(rec)
+    except Exception:
+        explanation = f"Audit evaluation completed. Estimated fraud probability: {round(proba * 100, 1)}%."
     rule_msgs = [c["message"] for c in (pred_check, bill_check) if c["status"] != "ok"]
     if rule_msgs:
         explanation = "Price logic check: " + " ".join(rule_msgs) + "\n\n" + explanation

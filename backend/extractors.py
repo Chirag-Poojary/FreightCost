@@ -44,14 +44,14 @@ PROVIDERS = {
         "url": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
         "key_env": "GEMINI_API_KEY",
         "model_env": "GEMINI_MODEL",
-        "default_model": "gemini-3.5-flash",
+        "default_model": "gemini-3.8-flash",
     },
     "groq": {
         "label": "Groq vision",
         "url": "https://api.groq.com/openai/v1/chat/completions",
         "key_env": "GROQ_API_KEY",
         "model_env": "GROQ_VISION_MODEL",
-        "default_model": "qwen/qwen3.6-27b",
+        "default_model": "qwen/qwen3.8-27b",
     },
     "openrouter": {
         "label": "OpenRouter (any vision model)",
@@ -279,7 +279,7 @@ def _extract_ocr_llm(image_path):
     import pytesseract
     from PIL import Image
     text = pytesseract.image_to_string(Image.open(image_path), config="--psm 6")
-    model = os.environ.get("GROQ_TEXT_MODEL", "llama-3.3-70b-versatile")
+    model = os.environ.get("GROQ_TEXT_MODEL", "openai/gpt-oss-120b")
     body = {
         "model": model, "temperature": 0, "max_tokens": 1500,
         "response_format": {"type": "json_object"},
