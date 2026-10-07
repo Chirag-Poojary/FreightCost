@@ -1,8 +1,8 @@
 # ==============================================================================
 # FreightCost AI - Production Container
-# Includes Linux Tesseract OCR binary, Python 3.11, XGBoost & FastAPI
+# Includes Linux Tesseract OCR binary, Python 3.12, XGBoost & FastAPI
 # ==============================================================================
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Prevent Python from writing .pyc files and enable unbuffered logging
 ENV PYTHONDONTWRITEBYTECODE=1
