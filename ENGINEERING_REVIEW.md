@@ -10,9 +10,9 @@ Severity: **High** = wrong results, security or data loss. **Medium** = misleadi
 
 | | Count |
 |---|---|
-| Problems found | 33 |
+| Problems found | 34 |
 | Fixed in this change | 25 |
-| Open (need a decision, credentials or real data) | 8 |
+| Open (need a decision, credentials or real data) | 9 |
 
 ---
 
@@ -76,6 +76,7 @@ Severity: **High** = wrong results, security or data loss. **Medium** = misleadi
 | 30 | Medium | The training orders and invoices are generated (only weather and diesel are real). | Needs real company data. | Retrain on a pilot partner's invoices before production use. |
 | 31 | Medium | Default model names `qwen/qwen3.8-27b` (Groq vision) and `gemini-3.8-flash` could not be verified against the providers' current model lists. The automatic fallback hides failures, and the Gemini key was over its free quota during testing. | Needs the API keys to check. | Confirm the model IDs in each provider's console and update `render.yaml`. |
 | 32 | Low | No rate limiting on the AI extraction endpoint, so a burst of uploads can exhaust the AI quota. | Depends on #26. | Rate-limit per user once sign-in exists. |
+| 34 | High | The live backend on Render reports `database_mode: local_csv`: Supabase is not configured there or cannot connect, so audit history and carrier statistics are kept in memory and lost whenever the free server restarts. The old health check hid this by always saying "connected". | Needs the Supabase credentials on Render. | Set `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` on Render, run `backend/schema.sql` and `backend/migrate_to_supabase.py`, then confirm `/api/health` shows `supabase`. |
 | 33 | Low | Live diesel prices are scraped from a public web page, which can change its layout without notice. | No free official API was found. | Use a paid or official price feed for production. |
 
 ---
