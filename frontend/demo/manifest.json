@@ -1,7 +1,8 @@
 [
  {
   "image": "INV037976.png",
-  "label": "Clean invoice (classic layout)",
+  "title": "Clean invoice",
+  "description": "Classic layout. Should be approved.",
   "ground_truth": {
    "invoice_id": "INV037976",
    "order_id": "ORD042771",
@@ -19,11 +20,13 @@
    "toll": 3079.65,
    "total": 46719.82,
    "gstin": "34ABCDE6625F1Z6"
-  }
+  },
+  "thumb": "thumbs/INV037976.jpg"
  },
  {
   "image": "INV047172.png",
-  "label": "Clean invoice (modern layout)",
+  "title": "Clean invoice",
+  "description": "Modern layout. Should be approved.",
   "ground_truth": {
    "invoice_id": "INV047172",
    "order_id": "ORD008521",
@@ -41,11 +44,13 @@
    "toll": 1320.73,
    "total": 17822.41,
    "gstin": "33ABCDE6476F1Z4"
-  }
+  },
+  "thumb": "thumbs/INV047172.jpg"
  },
  {
   "image": "INV036202.png",
-  "label": "Suspicious: inflated toll",
+  "title": "Inflated toll",
+  "description": "Billed well above the fair cost. Should be flagged.",
   "ground_truth": {
    "invoice_id": "INV036202",
    "order_id": "ORD052238",
@@ -63,6 +68,19 @@
    "toll": 1149.75,
    "total": 23449.76,
    "gstin": "34ABCDE7433F1Z3"
-  }
+  },
+  "thumb": "thumbs/INV036202.jpg"
+ },
+ {
+  "image": "HARD11_absent_fields.png",
+  "title": "Missing toll line",
+  "description": "A new order with no toll on the bill. You will be asked to type it in.",
+  "thumb": "thumbs/HARD11_absent_fields.jpg"
+ },
+ {
+  "image": "HARD04_phone_photo.jpg",
+  "title": "Phone photo",
+  "description": "A tilted mobile photo of a printed invoice.",
+  "thumb": "thumbs/HARD04_phone_photo.jpg"
  }
 ]

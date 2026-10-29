@@ -104,7 +104,10 @@ def build_model2_features(pred, order, context, m1):
     dist = max(10.0, float(order.get("distance_km", 10.0)))
     weight_tons = billable_wt / 1000.0
 
-    comm_delay = max(0.0, days - float(order.get("quoted_days", 0.0)))
+    # Training used the raw value (negative = delivered early) as the feature and
+    # the clipped value only inside the skew / breach features; mirror that exactly.
+    comm_delay_raw = days - float(order.get("quoted_days", 0.0))
+    comm_delay = max(0.0, comm_delay_raw)
     true_delay = days - float(order.get("ideal_days", 0.0))
 
     cost_mismatch_ratio = round(mismatch / pred_safe, 4)
@@ -125,7 +128,7 @@ def build_model2_features(pred, order, context, m1):
         "top_drivers": shap_info["breakdown"],
         "actual_days": days,
         "true_delay_days": true_delay,
-        "commercial_delay_days": comm_delay,
+        "commercial_delay_days": comm_delay_raw,
         "adverse_weather_days": float(context.get("adverse_weather_days", 0.0)),
         "vendor_padding_ratio": float(context.get("vendor_padding_ratio", 0.0)),
         "vendor_historical_risk_score": float(context["vendor_historical_risk_score"]),

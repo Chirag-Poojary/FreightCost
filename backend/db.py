@@ -15,6 +15,10 @@ load_dotenv(os.path.join(os.path.dirname(__file__), "..", ".env"))
 load_dotenv()
 
 
+# Median quoted/ideal ratio in the training invoices (code/output/invoices.csv).
+GLOBAL_PADDING_MEDIAN = 1.164
+
+
 class LocalDb:
     """Offline CSV-backed database implementation when Supabase is not configured."""
     def __init__(self, data_dir=None):
@@ -30,6 +34,10 @@ class LocalDb:
         self.vendors = pd.read_csv(os.path.join(data_dir, "vendors.csv")).set_index("vendor_id")
         inv_path = os.path.join(data_dir, "invoices.csv")
         self.invoices = pd.read_csv(inv_path).set_index("order_id") if os.path.exists(inv_path) else None
+        if self.invoices is not None and "vendor_id" in self.invoices.columns:
+            # The raw data has carrier IDs in mixed case (ven001 / VEN001); training
+            # upper-cases them, so do the same here or one carrier appears twice.
+            self.invoices["vendor_id"] = self.invoices["vendor_id"].astype(str).str.upper()
         gt_path = os.path.join(data_dir, "_ground_truth_audit.csv")
         self.gt = pd.read_csv(gt_path).set_index("order_id") if os.path.exists(gt_path) else None
 
@@ -70,6 +78,16 @@ class LocalDb:
             }
         return {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
 
+    def get_vendor_padding_ratio(self, vendor_id):
+        """Carrier's typical quoted/ideal days ratio; global median for unknown carriers."""
+        if self.invoices is None or "vendor_padding_ratio" not in self.invoices.columns:
+            return GLOBAL_PADDING_MEDIAN
+        col = self.invoices["vendor_padding_ratio"]
+        vals = col[(self.invoices["vendor_id"] == vendor_id) & (col > 0)]
+        if len(vals):
+            return float(vals.median())
+        return float(col[col > 0].median()) if (col > 0).any() else GLOBAL_PADDING_MEDIAN
+
     def get_ground_truth(self, order_id):
         import pandas as pd
         if self.gt is not None and order_id in self.gt.index:
@@ -107,7 +125,7 @@ class LocalDb:
         for vid, st in self.vendor_stats.items():
             tot = st["total_invoices"]
             flg = st["flagged_invoices"]
-            score = (flg + 1) / (tot + 2) if tot > 0 else 0.5
+            score = (flg + 2 * 0.06) / (tot + 2) if tot > 0 else 0.0   # same formula as causal_vendor_risk
             vname = self.vendors.loc[vid, "vendor_name"] if vid in self.vendors.index else vid
             if hasattr(vname, "iloc"):
                 vname = vname.iloc[0]
@@ -153,7 +171,23 @@ class Db:
             self._local = LocalDb()
         return self._local
 
+    @property
+    def mode(self):
+        return "supabase" if self.client else "local_csv"
+
     # ---------------------------------------------------------- reference
+    def get_vendor_padding_ratio(self, vendor_id):
+        if self.client:
+            try:
+                r = (self.client.table("reference_invoices").select("vendor_padding_ratio")
+                     .eq("vendor_id", vendor_id).limit(500).execute())
+                vals = sorted(float(x["vendor_padding_ratio"]) for x in r.data if x.get("vendor_padding_ratio"))
+                if vals:
+                    return vals[len(vals) // 2]
+            except Exception as e:
+                print(f"[Db] get_vendor_padding_ratio remote error ({e}), using local fallback")
+        return self._get_local().get_vendor_padding_ratio(vendor_id)
+
     def order_exists(self, order_id):
         if self.client:
             try:
@@ -175,8 +209,9 @@ class Db:
     def get_order(self, order_id):
         if self.client:
             try:
-                r = self.client.table("orders").select("*").eq("order_id", order_id).single().execute()
-                return r.data
+                r = self.client.table("orders").select("*").eq("order_id", order_id).limit(1).execute()
+                if r.data:
+                    return r.data[0]
             except Exception as e:
                 print(f"[Db] get_order remote error ({e}), using local fallback")
         return self._get_local().get_order(order_id)

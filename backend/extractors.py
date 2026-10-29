@@ -28,7 +28,13 @@ FIELDS = [
     "invoice_id", "order_id", "vendor_id", "invoice_date", "origin",
     "destination", "truck_type", "actual_days", "weight_kg",
     "freight_base", "detention", "toll", "total", "vendor_gstin",
+    "product_category",
 ]
+
+# Cargo categories Model 1 was trained on; anything else is dropped to null.
+PRODUCT_CATEGORIES = ["Steel Coils", "Automotive Spare Parts", "Industrial Chemicals",
+                      "Bulk Textiles", "Electronics Components"]
+TRUCK_TYPES = ["6-wheeler", "10-wheeler", "12-wheeler"]
 
 # Fields the two ML models (and the confidence gate) cannot run without.
 # Anything here that the extractor misses must be typed in by the user.
@@ -89,6 +95,9 @@ detention     detention / halting charge, number (0 if the line exists but is bl
 toll          toll charge, number
 total         the final total payable, number
 vendor_gstin  15-character GSTIN of the carrier
+product_category  the goods carried, only if it clearly matches one of: Steel Coils,
+              Automotive Spare Parts, Industrial Chemicals, Bulk Textiles,
+              Electronics Components (otherwise null)
 
 Rules:
 - Amounts: plain numbers, no commas, no currency symbol. Indian grouping
@@ -227,6 +236,12 @@ def normalise(parsed):
 
     if out.get("invoice_date"):
         out["invoice_date"] = normalise_date(out["invoice_date"])
+
+    # Map free text onto the categories the models know ("10 wheeler" -> "10-wheeler").
+    cat = (out.get("product_category") or "").strip().lower()
+    out["product_category"] = next((c for c in PRODUCT_CATEGORIES if c.lower() == cat), None)
+    truck = re.sub(r"[\s_]+", "-", (out.get("truck_type") or "").strip().lower())
+    out["truck_type"] = next((t for t in TRUCK_TYPES if t == truck or t == truck + "-wheeler"), out.get("truck_type"))
     return out
 
 

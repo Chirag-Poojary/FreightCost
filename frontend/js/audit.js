@@ -4,35 +4,44 @@
  *   2. Review  -> user confirms AI-read values and types any missing ones;
  *                 POST /api/check re-validates as they edit
  *   3. Verdict -> POST /api/score     (gate + Model 1 + Model 2)
- * The score button stays disabled until every required field has a value,
+ * The run button stays disabled until every required field has a value,
  * so the models never run on incomplete data.
  */
 
+const TRUCK_TYPES = ["6-wheeler", "10-wheeler", "12-wheeler"];
+const PRODUCT_CATEGORIES = ["Steel Coils", "Automotive Spare Parts", "Industrial Chemicals",
+  "Bulk Textiles", "Electronics Components"];
+
+// type: text | number | date | select (fixed options) ; list: id of a <datalist> with suggestions
 const FIELD_META = {
-  invoice_id:   { label: "Invoice number",        placeholder: "INV000123", type: "text" },
-  order_id:     { label: "Order / LR number",     placeholder: "ORD000123", type: "text" },
-  vendor_id:    { label: "Carrier (vendor) ID",   placeholder: "VEN001",    type: "text" },
-  invoice_date: { label: "Invoice date",          placeholder: "DD-MM-YYYY", type: "date" },
-  actual_days:  { label: "Actual transit days",   placeholder: "e.g. 1.5",  type: "number", step: "0.01" },
-  freight_base: { label: "Base freight (₹)",      placeholder: "e.g. 12500", type: "number", step: "0.01" },
-  detention:    { label: "Detention (₹)",         placeholder: "0 if none", type: "number", step: "0.01" },
-  toll:         { label: "Toll (₹)",              placeholder: "e.g. 1035", type: "number", step: "0.01" },
-  total:        { label: "Invoice total (₹)",     placeholder: "Final payable", type: "number", step: "0.01" },
-  origin:       { label: "Origin",                placeholder: "City", type: "text" },
-  destination:  { label: "Destination",           placeholder: "City", type: "text" },
-  truck_type:   { label: "Truck type",            placeholder: "e.g. 10-wheeler", type: "text" },
-  weight_kg:    { label: "Weight (kg)",           placeholder: "e.g. 9800", type: "number", step: "1" },
-  vendor_gstin: { label: "Carrier GSTIN",         placeholder: "15 characters", type: "text" },
+  invoice_id:       { label: "Invoice number",       placeholder: "INV000123", type: "text" },
+  order_id:         { label: "Order / LR number",    placeholder: "ORD000123", type: "text" },
+  vendor_id:        { label: "Carrier ID",           placeholder: "VEN001", type: "text", list: "dl-vendors" },
+  invoice_date:     { label: "Invoice date",         type: "date" },
+  actual_days:      { label: "Actual transit (days)", placeholder: "e.g. 1.5", type: "number", step: "any", min: "0" },
+  freight_base:     { label: "Base freight (₹)",     placeholder: "e.g. 12500", type: "number", step: "any", min: "0" },
+  detention:        { label: "Detention (₹)",        placeholder: "0 if none", type: "number", step: "any", min: "0" },
+  toll:             { label: "Toll (₹)",             placeholder: "0 if none", type: "number", step: "any", min: "0" },
+  total:            { label: "Invoice total (₹)",    placeholder: "Final payable", type: "number", step: "any", min: "0" },
+  origin:           { label: "From (city)",          placeholder: "Select or type a city", type: "text", list: "dl-cities" },
+  destination:      { label: "To (city)",            placeholder: "Select or type a city", type: "text", list: "dl-cities" },
+  truck_type:       { label: "Truck",                type: "select", options: TRUCK_TYPES },
+  product_category: { label: "Goods",                type: "select", options: PRODUCT_CATEGORIES },
+  weight_kg:        { label: "Weight (kg)",          placeholder: "e.g. 9800", type: "number", step: "any", min: "0" },
+  vendor_gstin:     { label: "Carrier GSTIN",        placeholder: "15 characters", type: "text" },
 };
+const REQUIRED_DEFAULT = ["invoice_id", "order_id", "vendor_id", "invoice_date", "actual_days",
+  "freight_base", "detention", "toll", "total"];
 
 const REASON_MAPPINGS = {
   missing_critical_field: "One or more required fields are empty.",
-  order_id_not_found: "This Order ID does not exist in the order master.",
-  vendor_id_not_found: "This Vendor ID is not a registered carrier.",
+  order_id_not_found: "This order number does not exist in the order records.",
+  vendor_id_not_found: "This carrier ID is not registered.",
   unparseable_amount_or_days: "The total or transit days could not be read as numbers.",
   arithmetic_mismatch: "Base freight + detention + toll does not add up to the total.",
   amount_out_of_plausible_range: "The total is outside ₹500 to ₹2,50,000.",
   days_out_of_plausible_range: "Transit days are outside 0.2 to 30 days.",
+  invalid_order_record: "The order record has impossible values.",
 };
 
 function formatCurrency(val) {
@@ -63,7 +72,7 @@ const auditPage = {
       fileThumb: $("file-thumb"), fileName: $("file-name"), fileSize: $("file-size"),
       removeBtn: $("file-remove-btn"), extractBtn: $("extract-btn"), extractSpinner: $("extract-spinner"),
       extractBtnText: $("extract-btn-text"), extractorSelect: $("extractor-select"), extractorHint: $("extractor-hint"),
-      demoSelect: $("demo-select"), errorBanner: $("audit-error-banner"),
+      sampleGrid: $("sample-grid"), errorBanner: $("audit-error-banner"),
       uploadCard: $("upload-card"), reviewCard: $("review-card"), resultsCard: $("audit-results-card"),
       fieldsContainer: $("fields-container"), form: $("fields-form"), scoreBtn: $("score-btn"),
       scoreSpinner: $("score-spinner"), scoreBtnText: $("score-btn-text"), reviewBanner: $("review-banner"),
@@ -71,7 +80,8 @@ const auditPage = {
     });
     this.bindEvents();
     this.loadExtractors();
-    this.loadDemos();
+    this.loadSamples();
+    this.loadSuggestionLists();
   },
 
   bindEvents() {
@@ -88,9 +98,9 @@ const auditPage = {
     this.removeBtn.addEventListener("click", e => { e.stopPropagation(); this.clearFile(); });
     this.extractBtn.addEventListener("click", () => this.runExtract());
     this.extractorSelect.addEventListener("change", () => this.updateExtractorHint());
-    this.demoSelect.addEventListener("change", () => this.loadDemo(this.demoSelect.value));
     this.form.addEventListener("submit", e => { e.preventDefault(); this.runScore(); });
-    this.form.addEventListener("input", e => this.onFieldInput(e));
+    this.form.addEventListener("input", () => this.onFieldInput());
+    this.form.addEventListener("change", () => this.onFieldInput());
     document.getElementById("back-btn").addEventListener("click", () => this.reset());
     document.getElementById("new-audit-btn").addEventListener("click", () => this.reset());
     document.getElementById("edit-again-btn").addEventListener("click", () => this.showStep(2));
@@ -102,13 +112,13 @@ const auditPage = {
       const { extractors } = await api.extractors();
       this.extractors = extractors;
       extractors.forEach(x => {
-        const opt = new Option(`${x.label} · ${x.model}${x.configured ? "" : " (not configured)"}`, x.id);
+        const opt = new Option(`${x.label} (${x.model})${x.configured ? "" : ", not configured"}`, x.id);
         opt.disabled = !x.configured;
         this.extractorSelect.add(opt);
       });
       this.updateExtractorHint();
     } catch (_) {
-      this.extractorHint.textContent = "Could not load the model list. The backend may be waking up; try again in a minute.";
+      this.extractorHint.textContent = "Could not load the model list. The server may be waking up; try again in a minute.";
     }
   },
 
@@ -116,56 +126,92 @@ const auditPage = {
     const list = this.extractors || [];
     const ready = list.filter(x => x.configured);
     if (!ready.length) {
-      this.extractorHint.innerHTML = "<strong>No extraction model is configured on the backend.</strong> Set <code>GEMINI_API_KEY</code> (recommended) or <code>GROQ_API_KEY</code> on Render. You can still enter fields by hand after uploading.";
+      this.extractorHint.textContent = "No reading model is set up on the server. You can still type the invoice details in by hand.";
       return;
     }
     const sel = this.extractorSelect.value;
     const x = sel === "auto" ? ready[0] : list.find(e => e.id === sel);
     this.extractorHint.textContent = sel === "auto"
-      ? `Will use ${x.label} (${x.model}) and fall back to the next configured model if it fails.`
-      : `${x.label} · ${x.model}`;
+      ? `Uses ${x.label} first and switches to the next model if it is busy.`
+      : `${x.label} (${x.model})`;
   },
 
-  async loadDemos() {
+  async loadSamples() {
     try {
       const res = await fetch("demo/manifest.json", { cache: "no-store" });
-      if (!res.ok) return;
-      (await res.json()).forEach(d => this.demoSelect.add(new Option(`${d.image.replace(".png", "")}: ${d.label}`, d.image)));
-    } catch (_) { /* demos are optional */ }
+      if (!res.ok) throw new Error();
+      const samples = await res.json();
+      this.sampleGrid.innerHTML = samples.map((s, i) => `
+        <button type="button" class="sample-card" data-index="${i}">
+          <div class="sample-thumb"><img src="demo/${escapeHtml(s.thumb || s.image)}" alt="Sample invoice: ${escapeHtml(s.title)}" loading="lazy"></div>
+          <div class="sample-body">
+            <div class="sample-title">${escapeHtml(s.title)}</div>
+            <div class="sample-desc">${escapeHtml(s.description || "")}</div>
+            <div class="sample-actions"><span class="use">Use this sample</span><a href="demo/${escapeHtml(s.image)}" target="_blank" rel="noopener" data-view>View</a></div>
+          </div>
+        </button>`).join("");
+      this.sampleGrid.querySelectorAll(".sample-card").forEach(card => {
+        card.addEventListener("click", e => {
+          if (e.target.closest("[data-view]")) return;   // the View link opens the image
+          this.loadSample(samples[Number(card.dataset.index)], card);
+        });
+      });
+    } catch (_) {
+      this.sampleGrid.innerHTML = '<div class="muted-note">Sample invoices are not available.</div>';
+    }
   },
 
-  async loadDemo(name) {
-    if (!name) return;
+  async loadSample(sample, card) {
     try {
-      const resp = await fetch(`demo/${name}`);
+      const resp = await fetch(`demo/${sample.image}`);
       if (!resp.ok) throw new Error();
       const blob = await resp.blob();
-      this.setFile(new File([blob], name, { type: blob.type || "image/png" }));
+      const type = blob.type || (sample.image.endsWith(".jpg") ? "image/jpeg" : "image/png");
+      if (this.setFile(new File([blob], sample.image, { type }))) {
+        this.sampleGrid.querySelectorAll(".sample-card").forEach(c => c.classList.toggle("selected", c === card));
+        this.extractBtn.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
     } catch (_) {
-      this.showError("Could not load the demo invoice.");
-    } finally {
-      this.demoSelect.value = "";
+      this.showError("Could not load the sample invoice. Please try again.");
     }
+  },
+
+  async loadSuggestionLists() {
+    const add = (id, values) => {
+      const dl = document.createElement("datalist");
+      dl.id = id;
+      dl.innerHTML = values.map(v => `<option value="${escapeHtml(v.value)}">${escapeHtml(v.label || "")}</option>`).join("");
+      document.body.appendChild(dl);
+    };
+    try {
+      const hubs = await api.hubs();
+      add("dl-cities", hubs.map(h => ({ value: h.city, label: h.state })));
+    } catch (_) { add("dl-cities", []); }
+    try {
+      const vendors = await api.vendors();
+      add("dl-vendors", vendors.map(v => ({ value: v.vendor_id, label: v.vendor_name })));
+    } catch (_) { add("dl-vendors", []); }
   },
 
   setFile(file) {
     if (!/^image\/(png|jpe?g|webp)$/.test(file.type)) {
       this.showError("Please upload a PNG, JPG or WEBP image of the invoice.");
-      return;
+      return false;
     }
     if (file.size > 10 * 1024 * 1024) {
       this.showError("That image is larger than 10 MB. Please upload a smaller scan or photo.");
-      return;
+      return false;
     }
     this.selectedFile = file;
     if (this.imageUrl) URL.revokeObjectURL(this.imageUrl);
     this.imageUrl = URL.createObjectURL(file);
     this.fileThumb.src = this.imageUrl;
     this.fileName.textContent = file.name;
-    this.fileSize.textContent = `(${(file.size / 1024).toFixed(0)} KB)`;
+    this.fileSize.textContent = `${(file.size / 1024).toFixed(0)} KB`;
     this.filePreview.classList.remove("hidden");
     this.extractBtn.disabled = false;
     this.hideError();
+    return true;
   },
 
   clearFile() {
@@ -173,6 +219,7 @@ const auditPage = {
     this.fileInput.value = "";
     this.filePreview.classList.add("hidden");
     this.extractBtn.disabled = true;
+    this.sampleGrid.querySelectorAll(".sample-card").forEach(c => c.classList.remove("selected"));
   },
 
   reset() {
@@ -203,14 +250,14 @@ const auditPage = {
       const res = await api.extract(this.selectedFile, this.extractorSelect.value);
       this.openReview(res);
     } catch (err) {
-      // Extraction failed entirely: still let the user type the fields in.
-      this.showError(`The model could not read this invoice (${err.message}). Enter the fields by hand below.`);
+      // Reading failed entirely: still let the user type the details in.
+      this.showError(`The invoice could not be read automatically (${err.message}). Please enter the details by hand.`);
       this.openReview({
-        fields: {}, missing_fields: Object.keys(FIELD_META).slice(0, 9), required_fields: Object.keys(FIELD_META).slice(0, 9),
+        fields: {}, missing_fields: REQUIRED_DEFAULT, required_fields: REQUIRED_DEFAULT,
         field_issues: {}, extractor_used: "manual", extractor_model: null, fallback_errors: [], filename: this.selectedFile.name,
       }, true);
     } finally {
-      this.setBusy(this.extractBtn, this.extractSpinner, this.extractBtnText, false, "Read Invoice");
+      this.setBusy(this.extractBtn, this.extractSpinner, this.extractBtnText, false, "Read invoice");
     }
   },
 
@@ -219,31 +266,32 @@ const auditPage = {
     this.extraction = res;
     this.aiFields = { ...res.fields };
     this.issues = res.field_issues || {};
-    const required = res.required_fields;
+    const required = res.required_fields || REQUIRED_DEFAULT;
+    this.extraction.required_fields = required;
     const optional = Object.keys(FIELD_META).filter(k => !required.includes(k));
 
     const badge = document.getElementById("extractor-used-badge");
-    badge.textContent = failed ? "Manual entry" : `Read by ${res.extractor_used} · ${res.extractor_model}`;
-    if (res.fallback_errors?.length) {
-      badge.title = "Fell back after: " + res.fallback_errors.map(e => `${e.provider}: ${e.error}`).join("\n");
-    }
+    badge.textContent = failed ? "Manual entry" : `Read by ${res.extractor_model || res.extractor_used}`;
+    badge.title = res.fallback_errors?.length
+      ? "Switched model after: " + res.fallback_errors.map(e => `${e.provider}: ${e.error}`).join("\n") : "";
 
     document.getElementById("review-image").src = this.imageUrl;
     document.getElementById("review-image-link").href = this.imageUrl;
 
     const section = (title, keys, isReq) => `
       <fieldset class="field-section">
-        <legend>${title}</legend>
+        ${title ? `<legend>${title}</legend>` : ""}
         <div class="field-grid">${keys.map(k => this.fieldHtml(k, isReq)).join("")}</div>
       </fieldset>`;
+    const anyOptionalFilled = optional.some(k => this.aiFields[k] != null && this.aiFields[k] !== "");
     this.fieldsContainer.innerHTML =
-      section("Required to run the models", required, true) +
-      `<details class="optional-fields"><summary>Other invoice details (optional)</summary>${section("", optional, false)}</details>`;
+      section("Invoice details", required, true) +
+      `<details class="optional-fields"${anyOptionalFilled ? " open" : ""}><summary>Trip details (optional, improves the estimate for new orders)</summary>${section("", optional, false)}</details>`;
 
     this.renderOrderSummary(res.order_summary);
     this.refreshFieldStates();
     this.showStep(2);
-    const firstMissing = this.fieldsContainer.querySelector(".field.missing input");
+    const firstMissing = this.fieldsContainer.querySelector(".field.missing input, .field.missing select");
     if (firstMissing) setTimeout(() => firstMissing.focus({ preventScroll: true }), 400);
   },
 
@@ -251,24 +299,35 @@ const auditPage = {
     const m = FIELD_META[key];
     let v = this.aiFields[key];
     if (v === null || v === undefined) v = "";
-    if (m.type === "date") v = toIsoDate(v);
+    const req = required ? ' <span class="req" aria-hidden="true">*</span>' : "";
+    let control;
+    if (m.type === "select") {
+      const opts = m.options.map(o => `<option value="${escapeHtml(o)}"${o === v ? " selected" : ""}>${escapeHtml(o)}</option>`).join("");
+      const extra = v && !m.options.includes(v) ? `<option value="${escapeHtml(v)}" selected>${escapeHtml(v)}</option>` : "";
+      control = `<select id="f-${key}" name="${key}" class="form-select"${required ? " required" : ""}>
+                   <option value="">Not specified</option>${opts}${extra}</select>`;
+    } else {
+      if (m.type === "date") v = toIsoDate(v);
+      control = `<input id="f-${key}" name="${key}" class="form-input" type="${m.type}"
+                   ${m.step ? `step="${m.step}"` : ""} ${m.min ? `min="${m.min}"` : ""} ${m.list ? `list="${m.list}"` : ""}
+                   ${m.placeholder ? `placeholder="${escapeHtml(m.placeholder)}"` : ""} value="${escapeHtml(v)}"
+                   ${required ? "required" : ""} autocomplete="off" ${m.type === "number" ? 'inputmode="decimal"' : ""}>`;
+    }
     return `
       <div class="field" data-field="${key}">
-        <label for="f-${key}">${m.label}${required ? ' <span class="req" aria-label="required">*</span>' : ""}</label>
-        <input id="f-${key}" name="${key}" class="form-input" type="${m.type}" ${m.step ? `step="${m.step}"` : ""}
-               placeholder="${m.placeholder}" value="${escapeHtml(v)}" ${required ? "required" : ""}
-               autocomplete="off" inputmode="${m.type === "number" ? "decimal" : "text"}">
+        <label for="f-${key}">${m.label}${req}</label>
+        ${control}
         <div class="field-status"></div>
       </div>`;
   },
 
   currentFields() {
     const out = {};
-    this.form.querySelectorAll("input[name]").forEach(inp => {
-      let v = inp.value.trim();
-      if (inp.type === "date") v = fromIsoDate(v);
-      if (inp.type === "number") v = v === "" ? null : Number(v);
-      out[inp.name] = v === "" ? null : v;
+    this.form.querySelectorAll("input[name], select[name]").forEach(el => {
+      let v = el.value.trim();
+      if (el.type === "date") v = fromIsoDate(v);
+      if (el.type === "number") v = v === "" ? null : Number(v);
+      out[el.name] = v === "" ? null : v;
     });
     return out;
   },
@@ -285,6 +344,7 @@ const auditPage = {
       el.classList.remove("missing", "edited", "issue", "ai");
       const empty = v === null || v === undefined || v === "";
       const isReq = required.includes(k);
+      const same = !empty && ai != null && (String(v) === String(ai) || (typeof v === "number" && Number(ai) === v));
       if (empty && isReq) {
         missing++;
         el.classList.add("missing");
@@ -292,15 +352,15 @@ const auditPage = {
       } else if (this.issues[k]) {
         el.classList.add("issue");
         status.textContent = this.issues[k];
-      } else if (!empty && ai != null && String(v) !== String(ai) && !(typeof v === "number" && Number(ai) === v)) {
+      } else if (!empty && ai != null && !same) {
         el.classList.add("edited");
-        status.textContent = `Edited (model read: ${ai})`;
-      } else if (!empty && ai != null) {
+        status.textContent = `Changed (read as ${ai})`;
+      } else if (same) {
         el.classList.add("ai");
-        status.textContent = "Read by model";
+        status.textContent = "Read from invoice";
       } else if (!empty) {
         el.classList.add("edited");
-        status.textContent = "Entered manually";
+        status.textContent = "Entered by you";
       } else {
         status.textContent = "";
       }
@@ -310,18 +370,18 @@ const auditPage = {
     this.scoreBtn.disabled = missing > 0;
     this.scoreBtnText.textContent = missing > 0
       ? `Fill ${missing} required field${missing > 1 ? "s" : ""} to continue`
-      : "Run cost & fraud models";
+      : "Run audit";
 
     const b = this.reviewBanner;
     if (missing > 0) {
       b.className = "alert-banner alert-warn";
-      b.innerHTML = `<strong>${missing} required field${missing > 1 ? "s" : ""} could not be read.</strong> Look at the invoice and type ${missing > 1 ? "them" : "it"} in. The models only run once every required field is filled.`;
+      b.innerHTML = `<strong>${missing} required field${missing > 1 ? "s" : ""} could not be read.</strong> Look at the invoice and enter ${missing > 1 ? "them" : "it"}. The audit runs only when every required field is filled.`;
     } else if (issueCount) {
       b.className = "alert-banner alert-warn";
-      b.innerHTML = `<strong>All required fields are filled</strong>, but ${issueCount} value${issueCount > 1 ? "s look" : " looks"} wrong. Check the highlighted fields before running the models.`;
+      b.innerHTML = `<strong>All required fields are filled</strong>, but ${issueCount} value${issueCount > 1 ? "s look" : " looks"} wrong. Check the highlighted fields.`;
     } else {
       b.className = "alert-banner alert-ok";
-      b.innerHTML = "<strong>All required fields are filled.</strong> Check the values against the invoice image, then run the models.";
+      b.innerHTML = "<strong>All required fields are filled.</strong> Check the values against the invoice, then run the audit.";
     }
   },
 
@@ -337,29 +397,36 @@ const auditPage = {
       this.issues = res.field_issues || {};
       this.renderOrderSummary(res.order_summary);
       this.refreshFieldStates();
-    } catch (_) { /* validation is advisory; scoring re-checks */ }
+    } catch (_) { /* advisory only; the server re-checks when scoring */ }
   },
 
   renderOrderSummary(s) {
     if (!s) { this.orderSummary.classList.add("hidden"); return; }
+    const title = s.is_new
+      ? `Order ${escapeHtml(s.order_id)} <span class="new-tag">New order</span>`
+      : `Order ${escapeHtml(s.order_id)} in your order records`;
+    const weight = Number(s.billable_weight_kg) > 0 ? `${Number(s.billable_weight_kg).toLocaleString("en-IN")} kg` : "Not given";
     this.orderSummary.innerHTML = `
-      <div class="order-summary-title">Order ${escapeHtml(s.order_id)} in the order master</div>
+      <div class="order-summary-title">${title}</div>
       <dl>
-        <dt>Route</dt><dd>${escapeHtml(s.origin)} → ${escapeHtml(s.destination)}</dd>
-        <dt>Booked carrier</dt><dd>${escapeHtml(s.vendor_id)}</dd>
-        <dt>Order date</dt><dd>${escapeHtml(s.order_date)}</dd>
+        <dt>Route</dt><dd>${escapeHtml(s.origin)} to ${escapeHtml(s.destination)}</dd>
+        <dt>Carrier</dt><dd>${escapeHtml(s.vendor_id)}</dd>
+        <dt>Order date</dt><dd>${escapeHtml(s.order_date || "Not given")}</dd>
         <dt>Truck</dt><dd>${escapeHtml(s.truck_type)}</dd>
-        <dt>Billable weight</dt><dd>${Number(s.billable_weight_kg).toLocaleString("en-IN")} kg</dd>
+        <dt>Weight</dt><dd>${weight}</dd>
         <dt>Quoted transit</dt><dd>${escapeHtml(s.quoted_days)} days</dd>
-      </dl>`;
+      </dl>
+      ${s.is_new ? '<div class="field-hint" style="margin-top:8px">Not in your order records, so the route and costs are estimated from the invoice. Filling the trip details improves the estimate.</div>' : ""}`;
     this.orderSummary.classList.remove("hidden");
+    // For a new order the trip details drive the estimate, so show them.
+    if (s.is_new) this.fieldsContainer.querySelector(".optional-fields")?.setAttribute("open", "");
   },
 
   // -------------------------------------------------------------- step 3
   async runScore() {
     if (this.scoreBtn.disabled) return;
     this.hideError();
-    this.setBusy(this.scoreBtn, this.scoreSpinner, this.scoreBtnText, true, "Running models…");
+    this.setBusy(this.scoreBtn, this.scoreSpinner, this.scoreBtnText, true, "Running audit…");
     let res = null;
     try {
       res = await api.score({
@@ -368,9 +435,9 @@ const auditPage = {
         extractor_model: this.extraction.extractor_model,
       });
     } catch (err) {
-      this.showError(`Scoring failed: ${err.message}`);
+      this.showError(`The audit could not be completed: ${err.message}`);
     }
-    this.setBusy(this.scoreBtn, this.scoreSpinner, this.scoreBtnText, false, "Run cost & fraud models");
+    this.setBusy(this.scoreBtn, this.scoreSpinner, this.scoreBtnText, false, "Run audit");
     this.refreshFieldStates();
     if (res?.status === "gate_failed") {
       this.handleGateFailure(res);
@@ -386,7 +453,7 @@ const auditPage = {
     (res.field_errors || []).forEach(k => { this.issues[k] = this.issues[k] || msg; });
     this.refreshFieldStates();
     this.reviewBanner.className = "alert-banner alert-danger";
-    this.reviewBanner.innerHTML = `<strong>The validation gate stopped this invoice:</strong> ${escapeHtml(msg)} Fix the highlighted fields and run again. No fraud score was computed.`;
+    this.reviewBanner.innerHTML = `<strong>The invoice did not pass validation:</strong> ${escapeHtml(msg)} Correct the highlighted fields and run again.`;
     this.reviewBanner.scrollIntoView({ behavior: "smooth", block: "center" });
   },
 
@@ -394,17 +461,21 @@ const auditPage = {
     const verdict = document.getElementById("verdict-badge");
     const explanation = document.getElementById("audit-explanation-box");
     document.getElementById("gate-status-box").classList.add("hidden");
+    const f = res.extracted_fields || {};
+    document.getElementById("result-subtitle").textContent =
+      [f.invoice_id && `Invoice ${f.invoice_id}`, f.order_id && `Order ${f.order_id}`, f.vendor_id && `Carrier ${f.vendor_id}`]
+        .filter(Boolean).join("  ·  ");
 
     const billCheck = res.price_check?.billed;
     if (res.flagged) {
       verdict.className = "badge badge-flagged";
       verdict.textContent = res.flag_source === "logic_check"
-        ? (billCheck?.status === "too_low" ? "FLAGGED: PRICE TOO LOW" : "FLAGGED: PRICE CHECK")
-        : "FLAGGED FOR AUDIT";
+        ? (billCheck?.status === "too_low" ? "Flagged: price too low" : "Flagged: price check")
+        : "Flagged for audit";
       explanation.className = "explanation-box flagged";
     } else {
       verdict.className = "badge badge-approved";
-      verdict.textContent = "APPROVED";
+      verdict.textContent = "Approved";
       explanation.className = "explanation-box approved";
     }
     explanation.textContent = res.explanation || "";
@@ -412,46 +483,47 @@ const auditPage = {
     document.getElementById("stat-billed-amount").textContent = formatCurrency(res.billed_amount);
     document.getElementById("stat-predicted-cost").textContent = formatCurrency(res.model1_predicted_cost);
     document.getElementById("stat-predicted-range").textContent =
-      res.model1_interval_lower != null ? `80% range ${formatCurrency(res.model1_interval_lower)} – ${formatCurrency(res.model1_interval_upper)}` : "";
+      res.model1_interval_lower != null ? `Likely range ${formatCurrency(res.model1_interval_lower)} to ${formatCurrency(res.model1_interval_upper)}` : "";
     const mm = Number(res.cost_mismatch || 0);
     const mmEl = document.getElementById("stat-cost-mismatch");
     mmEl.textContent = (mm > 0 ? "+" : "") + formatCurrency(mm);
-    mmEl.style.color = mm > 0 ? "var(--color-flagged-text)" : "var(--color-approved-text)";
+    mmEl.style.color = mm > 0 ? "var(--danger)" : "var(--success)";
     const pct = Number(res.model2_proba || 0) * 100;
     document.getElementById("stat-risk-proba").textContent = `${pct.toFixed(1)}%`;
     const fill = document.getElementById("risk-meter-fill");
     fill.style.width = `${Math.min(100, Math.max(0, pct))}%`;
-    fill.style.background = pct >= 50 ? "var(--color-flagged)" : "var(--color-approved)";
+    fill.style.background = pct >= 50 ? "var(--danger)" : "var(--success)";
 
     const drift = document.getElementById("drift-box");
     if (res.drift_warnings?.length) {
-      drift.innerHTML = "<strong>Data drift:</strong> " + res.drift_warnings.map(escapeHtml).join("<br>");
+      drift.innerHTML = "<strong>Note on prices:</strong> " + res.drift_warnings.map(escapeHtml).join("<br>");
       drift.classList.remove("hidden");
     } else drift.classList.add("hidden");
 
     const c = res.context || {};
     const tw = c.transit_weather;
     const rows = [
-      ["Diesel price used by Model 1", c.expected_fuel_price != null ? `₹${Number(c.expected_fuel_price).toFixed(2)}/L` : "—"],
-      ["Adverse weather days in transit", `${c.adverse_weather_days ?? "—"} <span class="src">${escapeHtml(c.adverse_weather_source || "")}</span>`],
-      tw ? ["Observed transit weather", `${tw.rain_mm_total} mm rain · max wind ${tw.max_wind_kmh} km/h · max ${tw.max_temp_c}°C <span class="src">${escapeHtml(tw.source)}, ${tw.start} to ${tw.end}</span>`] : null,
-      ["Price logic check", billCheck ? (billCheck.status === "ok"
-        ? `Passed. Billed amount is ${(billCheck.ratio * 100).toFixed(0)}% of the fair cost.`
+      ["Diesel price used", c.expected_fuel_price != null ? `₹${Number(c.expected_fuel_price).toFixed(2)} per litre` : "—"],
+      ["Heavy-rain days in transit", `${c.adverse_weather_days ?? "—"} <span class="src">${escapeHtml(c.adverse_weather_source || "")}</span>`],
+      tw ? ["Weather during the trip", `${tw.rain_mm_total} mm rain, wind up to ${tw.max_wind_kmh} km/h, up to ${tw.max_temp_c}°C <span class="src">${escapeHtml(tw.source)}, ${escapeHtml(tw.start)} to ${escapeHtml(tw.end)}</span>`] : null,
+      ["Price check", billCheck ? (billCheck.status === "ok"
+        ? `Passed. Bill is ${(billCheck.ratio * 100).toFixed(0)}% of the fair cost.`
         : `<strong>${escapeHtml(billCheck.status.replace("_", " "))}</strong>: ${escapeHtml(billCheck.message)}`) : "—"],
-      ["Flagged by", res.flag_source ? escapeHtml(res.flag_source.replace("model", "fraud model").replace("logic_check", "price logic check").replace("+", " + ")) : "Not flagged"],
-      ["Carrier historical risk", c.vendor_historical_risk_score != null ? `${(c.vendor_historical_risk_score * 100).toFixed(1)}%` : "—"],
-      ["Fields entered or corrected by hand", res.manually_entered_fields?.length ? res.manually_entered_fields.map(k => FIELD_META[k]?.label || k).join(", ") : "None. All read by the model."],
-      ["Extraction model", res.extractor_model ? `${escapeHtml(res.extractor_used)} · ${escapeHtml(res.extractor_model)}` : escapeHtml(res.extractor_used)],
+      ["Flagged by", res.flag_source ? escapeHtml(res.flag_source.replace("model", "risk model").replace("logic_check", "price check").replace("+", " and ")) : "Not flagged"],
+      ["Carrier's past risk", c.vendor_historical_risk_score != null ? `${(c.vendor_historical_risk_score * 100).toFixed(1)}%` : "—"],
+      ["Entered or changed by you", res.manually_entered_fields?.length ? res.manually_entered_fields.map(k => FIELD_META[k]?.label || k).join(", ") : "None"],
+      ...(c.notes || []).map(n => ["Note", escapeHtml(n)]),
+      ["Read by", escapeHtml(res.extractor_model || res.extractor_used)],
     ].filter(Boolean);
     const drivers = (res.cost_drivers || []).map(d =>
       `<li><span>${escapeHtml(d.feature.replace(/_/g, " "))}</span><span class="${d.feature !== "model_adjustment" ? "" : d.impact > 0 ? "neg" : "pos"}">${d.impact > 0 ? "+" : "−"}₹${Math.abs(d.impact).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span></li>`).join("");
     const panel = document.getElementById("context-panel");
     panel.innerHTML = `
       <div class="context-col">
-        <div class="context-title">Inputs and data sources</div>
+        <div class="context-title">Inputs and sources</div>
         <dl>${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl>
       </div>
-      ${drivers ? `<div class="context-col"><div class="context-title">Fair-cost build-up</div><ul class="driver-list">${drivers}</ul></div>` : ""}`;
+      ${drivers ? `<div class="context-col"><div class="context-title">Fair cost build-up</div><ul class="driver-list">${drivers}</ul></div>` : ""}`;
     panel.classList.remove("hidden");
   },
 
@@ -461,7 +533,7 @@ const auditPage = {
     spinner.classList.toggle("hidden", !busy);
     label.textContent = text;
   },
-  showError(msg) { this.errorBanner.textContent = msg; this.errorBanner.classList.remove("hidden"); },
+  showError(msg) { this.errorBanner.textContent = msg; this.errorBanner.classList.remove("hidden"); this.errorBanner.scrollIntoView({ behavior: "smooth", block: "center" }); },
   hideError() { this.errorBanner.classList.add("hidden"); this.errorBanner.textContent = ""; },
 };
 

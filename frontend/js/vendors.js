@@ -23,7 +23,7 @@ const vendorsPage = {
     this.searchInput.addEventListener("input", () => this.render());
 
     // Sortable table headers
-    document.querySelectorAll(".data-table th[data-sort]").forEach(th => {
+    document.querySelectorAll("#vendors-table th[data-sort]").forEach(th => {
       th.addEventListener("click", () => {
         const field = th.getAttribute("data-sort");
         if (this.sortField === field) {
@@ -44,13 +44,13 @@ const vendorsPage = {
       this.data = await api.vendors();
       this.render();
     } catch (err) {
-      this.errorBanner.textContent = `Could not load vendor data: ${err.message}`;
+      this.errorBanner.textContent = `Could not load carriers: ${err.message}`;
       this.errorBanner.classList.remove("hidden");
     }
   },
 
   updateSortHeaders() {
-    document.querySelectorAll(".data-table th[data-sort]").forEach(th => {
+    document.querySelectorAll("#vendors-table th[data-sort]").forEach(th => {
       const field = th.getAttribute("data-sort");
       const title = th.getAttribute("data-title") || th.textContent.replace(/[ ▲▼]/g, "");
       if (field === this.sortField) {
@@ -88,7 +88,7 @@ const vendorsPage = {
     });
 
     // Count label
-    this.countLabel.textContent = `Showing ${filtered.length} of ${this.data.length} vendors`;
+    this.countLabel.textContent = `Showing ${filtered.length} of ${this.data.length} carriers`;
 
     // Render Table Rows
     this.tableBody.innerHTML = "";
@@ -96,9 +96,7 @@ const vendorsPage = {
     if (filtered.length === 0) {
       this.tableBody.innerHTML = `
         <tr>
-          <td colspan="5" style="text-align: center; color: var(--color-text-dim); padding: 30px;">
-            No vendors match your search criteria.
-          </td>
+          <td colspan="5" class="empty-cell">No carriers match your search.</td>
         </tr>`;
       return;
     }
@@ -106,24 +104,15 @@ const vendorsPage = {
     filtered.forEach(v => {
       const score = Number(v.risk_score || 0);
       let badgeClass = "badge-approved";
-      if (score >= 0.35) {
-        badgeClass = "badge-flagged";
-      } else if (score >= 0.15) {
-        badgeClass = "badge-pending";
-      }
-
+      if (score >= 0.35) badgeClass = "badge-flagged";
+      else if (score >= 0.15) badgeClass = "badge-pending";
       const row = document.createElement("tr");
       row.innerHTML = `
-        <td style="font-weight: 600;">${v.vendor_name || "Unknown Carrier"}</td>
-        <td style="font-family: var(--font-mono); color: var(--color-primary-text); font-size: 0.88rem;">${v.vendor_id}</td>
-        <td style="text-align: right; font-family: var(--font-mono);">${v.total_invoices.toLocaleString()}</td>
-        <td style="text-align: right; font-family: var(--font-mono);">${v.flagged_invoices.toLocaleString()}</td>
-        <td style="text-align: right;">
-          <span class="badge ${badgeClass}" style="font-size: 0.78rem; padding: 3px 10px;">
-            ${(score * 100).toFixed(1)}%
-          </span>
-        </td>
-      `;
+        <td><strong>${escapeHtml(v.vendor_name || "Unknown carrier")}</strong></td>
+        <td class="mono">${escapeHtml(v.vendor_id)}</td>
+        <td class="num">${Number(v.total_invoices || 0).toLocaleString("en-IN")}</td>
+        <td class="num">${Number(v.flagged_invoices || 0).toLocaleString("en-IN")}</td>
+        <td class="num"><span class="badge ${badgeClass}">${(score * 100).toFixed(1)}%</span></td>`;
       this.tableBody.appendChild(row);
     });
   }

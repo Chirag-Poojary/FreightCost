@@ -1,769 +1,441 @@
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8">
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>FreightCost AI — Automated Invoice Audit & Risk Scoring</title>
-
-  <meta name="description"
-    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
-
+  <title>RateRight | Freight Invoice Audit</title>
+  <meta name="description" content="RateRight reads truck freight invoices, predicts the fair cost of each trip and flags overbilling for businesses and MSMEs.">
   <meta name="robots" content="index, follow">
-
-  <meta name="theme-color" content="#0f1117">
-
-  <link rel="canonical" href="https://freightcost-ai.vercel.app/">
-
-
-
-  <!-- Open Graph / Social Media Cards -->
-
+  <meta name="theme-color" content="#ffffff">
+  <link rel="canonical" href="https://freight-cost-nine.vercel.app/">
   <meta property="og:type" content="website">
-
-  <meta property="og:url" content="https://freightcost-ai.vercel.app/">
-
-  <meta property="og:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
-
-  <meta property="og:description"
-    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
-
-  <meta property="og:image" content="https://freightcost-ai.vercel.app/og-preview.png">
-
-  <meta property="og:site_name" content="FreightCost AI">
-
-
-
-  <!-- Twitter Cards -->
-
+  <meta property="og:url" content="https://freight-cost-nine.vercel.app/">
+  <meta property="og:title" content="RateRight | Freight Invoice Audit">
+  <meta property="og:description" content="Read freight invoices with AI, check them against a fair cost and flag overbilling.">
+  <meta property="og:image" content="https://freight-cost-nine.vercel.app/og-preview.png">
+  <meta property="og:site_name" content="RateRight">
   <meta name="twitter:card" content="summary_large_image">
-
-  <meta name="twitter:title" content="FreightCost AI — Automated Invoice Audit & Risk Scoring">
-
-  <meta name="twitter:description"
-    content="Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.">
-
-  <meta name="twitter:image" content="https://freightcost-ai.vercel.app/og-preview.png">
-
-
-
-  <!-- JSON-LD Structured Data -->
-
-  <script type="application/ld+json">
-
-  {
-
-    "@context": "https://schema.org",
-
-    "@type": "WebApplication",
-
-    "name": "FreightCost AI",
-
-    "url": "https://freightcost-ai.vercel.app/",
-
-    "description": "Production-ready freight invoice audit engine powered by Tesseract OCR, XGBoost predictive cost models, 4-tier confidence gating, and causal vendor risk intelligence.",
-
-    "applicationCategory": "BusinessApplication",
-
-    "operatingSystem": "All",
-
-    "offers": {
-
-      "@type": "Offer",
-
-      "price": "0"
-
-    }
-
-  }
-
-  </script>
-
-
-
-  <link rel="stylesheet" href="css/styles.css?v=3.1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="css/styles.css?v=4.0">
 </head>
-
 <body>
+  <div class="app-shell">
 
-
-
-  <!-- Navigation Bar -->
-
-  <nav class="navbar">
-
-    <div class="nav-container">
-
-      <a href="#audit" class="nav-brand">
-
-        <div class="brand-icon">⚡</div>
-
-        <div>
-
-          <div class="brand-title">FreightCost AI</div>
-
-        </div>
-
-        <span class="brand-badge">Audit Engine</span>
-
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <a href="#audit" class="brand" aria-label="RateRight home">
+        <span class="brand-mark" aria-hidden="true">R</span>
+        <span class="brand-name">RATERIGHT</span>
       </a>
-
-
-
-      <ul class="nav-links">
-
-        <li><a href="#audit" class="nav-link active" id="nav-link-audit">Audit</a></li>
-
-        <li><a href="#dashboard" class="nav-link" id="nav-link-dashboard">Dashboard</a></li>
-
-        <li><a href="#vendors" class="nav-link" id="nav-link-vendors">Vendors</a></li>
-
-        <li><a href="#quote" class="nav-link" id="nav-link-quote">New Quote</a></li>
-
-      </ul>
-
-
-
-      <div class="nav-status" id="health-status-container" style="cursor: pointer;"
-        title="Click to view backend connection settings">
-
-        <span class="status-dot online" id="health-dot"></span>
-
-        <span id="health-label">Engine Online</span>
-
-      </div>
-
-    </div>
-
-  </nav>
-
-
-
-  <!-- Main Content Container -->
-
-  <main class="main-content">
-
-
-
-    <!-- Backend Connection / Offline Guidance Banner -->
-
-    <div id="backend-offline-banner" class="alert-banner alert-danger hidden"
-      style="margin-bottom: calc(var(--space-unit) * 3); border-left: 4px solid var(--color-flagged);">
-
-      <div style="flex: 1;">
-
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-
-          <strong style="color: #fff;">Backend Service Offline / Unreachable</strong>
-
-          <span
-            style="font-size: 0.75rem; text-transform: uppercase; color: var(--color-flagged-text); font-weight: 700; letter-spacing: 0.05em;">Action
-            Required</span>
-
-        </div>
-
-        <p style="font-size: 0.88rem; color: var(--color-text-dim); margin-bottom: 8px;">
-
-          The web client attempted to contact the FastAPI audit API at <code id="current-api-base"
-            style="font-family: var(--font-mono); color: #fff; background: rgba(0,0,0,0.3); padding: 2px 6px; border-radius: 4px;"></code>
-          but received no response.
-
-        </p>
-
-        <p style="font-size: 0.82rem; color: var(--color-text-muted); margin-bottom: 10px;">
-
-          To connect this Vercel deployment to your backend, enter your deployed backend URL (e.g. Render, Railway)
-          below:
-
-        </p>
-
-        <div style="display: flex; gap: 8px; max-width: 540px;">
-
-          <input type="url" id="backend-url-input" class="form-input" placeholder="https://freightcost.onrender.com"
-            style="padding: 6px 12px; font-size: 0.88rem;">
-
-          <button type="button" id="save-backend-url-btn" class="btn btn-primary btn-sm"
-            style="white-space: nowrap;">Connect</button>
-          <button type="button" id="reset-backend-url-btn" class="btn btn-secondary btn-sm"
-            style="white-space: nowrap;">Reset to Default</button>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-
-    <!-- ====================================================================
-
-         PAGE 1: AUDIT (#audit-page)
-
-         ==================================================================== -->
-
-    <section id="audit-page" class="page-section">
-
-      <header class="page-header">
-        <h1>Invoice Audit &amp; Risk Assessment</h1>
-        <p>Upload a carrier invoice. A cloud vision model reads it, you confirm or fill in anything it could not
-          read, and only then do the cost and fraud models run.</p>
-      </header>
-
-      <ol class="stepper" id="audit-stepper">
-        <li class="step active" data-step="1"><span>1</span>Upload</li>
-        <li class="step" data-step="2"><span>2</span>Review fields</li>
-        <li class="step" data-step="3"><span>3</span>Verdict</li>
-      </ol>
-
-      <div id="audit-error-banner" class="alert-banner alert-danger hidden"></div>
-
-      <!-- STEP 1: upload -->
-      <div class="card" id="upload-card">
-        <div class="card-title">
-          <span>Upload Carrier Invoice</span>
-          <div class="demo-picker">
-            <select id="demo-select" class="form-select form-select-sm" aria-label="Demo invoice">
-              <option value="">Try a demo invoice…</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload invoice image">
-          <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp" style="display: none;">
-          <div class="dropzone-icon">📄</div>
-          <div class="dropzone-text">Drop an invoice image here, or click to browse</div>
-          <div class="dropzone-subtext">PNG, JPG or WEBP · scans and phone photos both work · max 10 MB</div>
-        </div>
-
-        <div id="file-preview" class="file-preview hidden">
-          <div class="file-preview-info">
-            <img id="file-thumb" class="file-thumb" alt="">
-            <div>
-              <span id="file-name" style="font-weight: 600;">invoice.png</span>
-              <span id="file-size" style="color: var(--color-text-dim); margin-left: 6px;">(0 KB)</span>
-            </div>
-          </div>
-          <button type="button" class="file-remove-btn" id="file-remove-btn" title="Remove file">&times;</button>
-        </div>
-
-        <div class="form-group" style="margin-top: calc(var(--space-unit) * 2.5);">
-          <label class="form-label" for="extractor-select">Extraction model</label>
-          <select id="extractor-select" class="form-select">
-            <option value="auto">Auto: best configured model, with fallback</option>
-          </select>
-          <div class="field-hint" id="extractor-hint"></div>
-        </div>
-
-        <button type="button" id="extract-btn" class="btn btn-primary" style="width: 100%;" disabled>
-          <span id="extract-spinner" class="spinner hidden"></span>
-          <span id="extract-btn-text">Read Invoice</span>
+      <div class="nav-group-label">Operations</div>
+      <nav class="nav-links" aria-label="Main">
+        <a href="#audit" class="nav-link active" id="nav-link-audit">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M14 3v5h5M10 13h6M10 17h6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>Invoice Audit</span>
+        </a>
+        <a href="#quote" class="nav-link" id="nav-link-quote">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M8 7h8M8 11h2M12 11h2M16 11h0M8 15h2M12 15h2M8 18h2M12 18h2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>Freight Quote</span>
+        </a>
+      </nav>
+      <div class="nav-group-label">Insights</div>
+      <nav class="nav-links" aria-label="Insights">
+        <a href="#dashboard" class="nav-link" id="nav-link-dashboard">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="#vendors" class="nav-link" id="nav-link-vendors">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="7" cy="17.5" r="1.8" fill="#fff" stroke="currentColor" stroke-width="1.5"/><circle cx="17" cy="17.5" r="1.8" fill="#fff" stroke="currentColor" stroke-width="1.5"/></svg>
+          <span>Carriers</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <button type="button" class="status-pill" id="health-status-container" title="Show backend connection settings">
+          <span class="status-dot" id="health-dot"></span>
+          <span id="health-label">Checking…</span>
         </button>
       </div>
+    </aside>
 
-      <!-- STEP 2: review -->
-      <div class="card hidden" id="review-card">
-        <div class="card-title">
-          <span>Review extracted fields</span>
-          <span id="extractor-used-badge" class="badge badge-neutral"></span>
+    <!-- Main column -->
+    <div class="main-col">
+      <header class="topbar">
+        <button type="button" class="menu-btn" id="menu-btn" aria-label="Open menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <div class="breadcrumb"><span>RateRight</span><span class="sep">/</span><strong id="topbar-title">Invoice Audit</strong></div>
+        <a class="topbar-link" href="https://github.com/Chirag-Poojary/FreightCost" target="_blank" rel="noopener">Documentation</a>
+      </header>
+
+      <main class="main-content">
+
+        <!-- Backend connection banner -->
+        <div id="backend-offline-banner" class="alert-banner alert-danger hidden">
+          <div class="banner-body">
+            <strong>Cannot reach the RateRight server</strong>
+            <p>The app tried to contact <code id="current-api-base"></code> and got no response. The free server sleeps when idle and can take up to a minute to wake up. If you run your own backend, enter its URL below.</p>
+            <div class="inline-form">
+              <input type="url" id="backend-url-input" class="form-input" placeholder="https://freightcost.onrender.com" aria-label="Backend URL">
+              <button type="button" id="save-backend-url-btn" class="btn btn-primary btn-sm">Connect</button>
+              <button type="button" id="reset-backend-url-btn" class="btn btn-secondary btn-sm">Reset to default</button>
+            </div>
+          </div>
         </div>
 
-        <div id="review-banner" class="alert-banner alert-info"></div>
-
-        <div class="review-grid">
-          <div class="review-image">
-            <a id="review-image-link" target="_blank" rel="noopener" title="Open full size">
-              <img id="review-image" alt="Uploaded invoice">
-            </a>
-            <div class="field-hint">Click the image to open it full size.</div>
-            <div id="order-summary" class="order-summary hidden"></div>
+        <!-- ============================================================ AUDIT -->
+        <section id="audit-page" class="page-section">
+          <div class="page-header">
+            <div>
+              <h1>Invoice Audit</h1>
+              <p>Upload a transporter invoice. RateRight reads it, you confirm the details, and it checks the bill against a fair cost.</p>
+            </div>
           </div>
 
-          <form id="fields-form" class="fields-form" novalidate>
-            <div id="fields-container"></div>
-            <div class="form-actions">
-              <button type="button" id="back-btn" class="btn btn-secondary">Upload another</button>
-              <button type="submit" id="score-btn" class="btn btn-primary" disabled>
-                <span id="score-spinner" class="spinner hidden"></span>
-                <span id="score-btn-text">Run cost &amp; fraud models</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+          <ol class="stepper" id="audit-stepper">
+            <li class="step active" data-step="1"><span>1</span>Upload</li>
+            <li class="step" data-step="2"><span>2</span>Review details</li>
+            <li class="step" data-step="3"><span>3</span>Verdict</li>
+          </ol>
 
-      <!-- STEP 3: verdict -->
-      <div id="audit-results-card" class="card hidden">
-        <div class="card-title">
-          <span>Audit Verdict &amp; Scoring</span>
-          <span id="verdict-badge" class="badge badge-neutral">—</span>
-        </div>
+          <div id="audit-error-banner" class="alert-banner alert-danger hidden"></div>
 
-        <div id="gate-status-box" class="alert-banner alert-danger hidden"></div>
-        <div id="drift-box" class="alert-banner alert-warn hidden"></div>
+          <!-- Step 1 -->
+          <div id="upload-card">
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Try a sample invoice</h2>
+                  <p class="card-sub">New here? Pick a sample to see the full audit before using your own company's invoices.</p>
+                </div>
+              </div>
+              <div class="sample-grid" id="sample-grid" aria-label="Sample invoices">
+                <div class="muted-note">Loading samples…</div>
+              </div>
+            </div>
 
-        <div id="audit-stats-container">
-          <div class="stats-grid-4">
-            <div class="stat-card">
-              <div class="stat-label">Billed Amount</div>
-              <div class="stat-value" id="stat-billed-amount">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Predicted Fair Cost</div>
-              <div class="stat-value primary" id="stat-predicted-cost">—</div>
-              <div class="stat-sub" id="stat-predicted-range"></div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Cost Mismatch</div>
-              <div class="stat-value" id="stat-cost-mismatch">—</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-label">Fraud Risk</div>
-              <div class="stat-value" id="stat-risk-proba">—</div>
-              <div class="meter-container">
-                <div class="meter-track">
-                  <div class="meter-fill" id="risk-meter-fill" style="width: 0%;"></div>
+            <div class="card">
+              <div class="card-head">
+                <div>
+                  <h2>Upload your invoice</h2>
+                  <p class="card-sub">PNG, JPG or WEBP. Scans and phone photos both work. Maximum 10 MB.</p>
+                </div>
+              </div>
+
+              <div class="dropzone" id="dropzone" tabindex="0" role="button" aria-label="Upload invoice image">
+                <input type="file" id="file-input" accept="image/png, image/jpeg, image/webp" hidden>
+                <svg class="dropzone-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V4M7 9l5-5 5 5M5 15v4h14v-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="dropzone-text">Drag and drop an invoice image, or <span class="link-text">browse files</span></div>
+              </div>
+
+              <div id="file-preview" class="file-preview hidden">
+                <div class="file-preview-info">
+                  <img id="file-thumb" class="file-thumb" alt="">
+                  <div>
+                    <div id="file-name" class="file-name">invoice.png</div>
+                    <div id="file-size" class="file-size">0 KB</div>
+                  </div>
+                </div>
+                <button type="button" class="icon-btn" id="file-remove-btn" title="Remove file" aria-label="Remove file">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+                </button>
+              </div>
+
+              <div class="form-row-2 upload-options">
+                <div class="form-group">
+                  <label class="form-label" for="extractor-select">Reading model</label>
+                  <select id="extractor-select" class="form-select">
+                    <option value="auto">Automatic (best available, with fallback)</option>
+                  </select>
+                  <div class="field-hint" id="extractor-hint"></div>
+                </div>
+                <div class="form-group upload-action">
+                  <button type="button" id="extract-btn" class="btn btn-primary btn-block" disabled>
+                    <span id="extract-spinner" class="spinner hidden"></span>
+                    <span id="extract-btn-text">Read invoice</span>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        <div id="audit-explanation-box" class="explanation-box neutral"></div>
-
-        <div id="context-panel" class="context-panel hidden"></div>
-
-        <div class="form-actions" style="margin-top: calc(var(--space-unit) * 3);">
-          <button type="button" id="edit-again-btn" class="btn btn-secondary">Edit fields</button>
-          <button type="button" id="new-audit-btn" class="btn btn-primary">Audit another invoice</button>
-        </div>
-      </div>
-    </section>
-
-
-
-    <!-- ====================================================================
-
-         PAGE 2: DASHBOARD (#dashboard-page)
-
-         ==================================================================== -->
-
-    <section id="dashboard-page" class="page-section hidden">
-
-      <header class="page-header">
-
-        <h1>Operational Audit Dashboard</h1>
-
-        <p>Continuous monitoring of automated invoice throughput, gate pass ratios, and anomaly rejection telemetry.</p>
-
-      </header>
-
-
-
-      <div id="dash-error-banner" class="alert-banner alert-danger hidden"></div>
-
-
-
-      <!-- Control Bar -->
-
-      <div class="card" style="padding: calc(var(--space-unit) * 2);">
-
-        <div
-          style="display: flex; align-items: center; justify-content: space-between; gap: calc(var(--space-unit) * 2);">
-
-          <div style="display: flex; align-items: center; gap: calc(var(--space-unit) * 1.5);">
-
-            <label for="dash-n-input" style="font-size: 0.9rem; font-weight: 600; color: var(--color-text-dim);">
-
-              Sample Window (Last N):
-
-            </label>
-
-            <input type="number" id="dash-n-input" class="form-input" value="300" min="10" max="5000"
-              style="width: 110px; padding: 6px 10px;">
-
-          </div>
-
-          <button type="button" id="dash-refresh-btn" class="btn btn-primary btn-sm">
-
-            Refresh
-
-          </button>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- 4 Stat Cards -->
-
-      <div class="stats-grid-4">
-
-        <div class="stat-card">
-
-          <div class="stat-label">Total Processed</div>
-
-          <div class="stat-value" id="dash-stat-total">0</div>
-
-        </div>
-
-        <div class="stat-card">
-
-          <div class="stat-label">Auto-Processing Rate</div>
-
-          <div class="stat-value approved" id="dash-stat-rate">0.0%</div>
-
-        </div>
-
-        <div class="stat-card">
-
-          <div class="stat-label">Gate Rejected</div>
-
-          <div class="stat-value pending" id="dash-stat-rejected">0</div>
-
-        </div>
-
-        <div class="stat-card">
-
-          <div class="stat-label">Flagged Anomalies</div>
-
-          <div class="stat-value flagged" id="dash-stat-flagged">0</div>
-
-        </div>
-
-      </div>
-
-
-
-      <!-- Rejection Breakdown Card -->
-
-      <div class="card">
-
-        <div class="card-title">Confidence Gate Rejection Breakdown</div>
-
-        <div id="rejection-breakdown-container">
-
-          <div style="text-align: center; color: var(--color-text-dim); padding: 20px;">
-
-            Loading telemetry...
-
-          </div>
-
-        </div>
-
-
-
-        <p class="disclaimer-note">
-
-          * Figures reflect aggregate telemetry from the most recent processed invoices recorded in the audit logs.
-
-        </p>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- ====================================================================
-
-         PAGE 3: VENDORS (#vendors-page)
-
-         ==================================================================== -->
-
-    <section id="vendors-page" class="page-section hidden">
-
-      <header class="page-header">
-
-        <h1>Vendor Risk Explorer</h1>
-
-        <p>Causal carrier risk directory computed from historical audit logs via Laplace-smoothed Bayesian priors.</p>
-
-      </header>
-
-
-
-      <div id="vendors-error-banner" class="alert-banner alert-danger hidden"></div>
-
-
-
-      <div class="card">
-
-        <div
-          style="display: flex; justify-content: space-between; align-items: center; margin-bottom: calc(var(--space-unit) * 2); gap: calc(var(--space-unit) * 2);">
-
-          <input type="text" id="vendor-search-input" class="form-input"
-            placeholder="Search carrier by name or ID (e.g. VEN001, Maruti)..." style="max-width: 420px;">
-
-          <span id="vendor-count-label" style="font-size: 0.85rem; color: var(--color-text-dim);">Showing 0
-            vendors</span>
-
-        </div>
-
-
-
-        <div class="table-responsive">
-
-          <table class="data-table">
-
-            <thead>
-
-              <tr>
-
-                <th data-sort="vendor_name" data-title="Carrier Name">Carrier Name</th>
-
-                <th data-sort="vendor_id" data-title="Vendor ID">Vendor ID</th>
-
-                <th data-sort="total_invoices" data-title="Total Audits" style="text-align: right;">Total Audits</th>
-
-                <th data-sort="flagged_invoices" data-title="Flagged" style="text-align: right;">Flagged</th>
-
-                <th data-sort="risk_score" data-title="Risk Score" style="text-align: right;">Risk Score ▼</th>
-
-              </tr>
-
-            </thead>
-
-            <tbody id="vendors-tbody">
-
-              <tr>
-
-                <td colspan="5" style="text-align: center; color: var(--color-text-dim); padding: 30px;">
-
-                  Loading carriers...
-
-                </td>
-
-              </tr>
-
-            </tbody>
-
-          </table>
-
-        </div>
-
-
-
-        <p class="disclaimer-note">
-
-          * Risk score reflects causal Laplace smoothing: <code>(flagged + 2 &times; 0.06) / (total + 2)</code>. Vendors
-          with 0 audits default to the empirical prior (6.0%).
-
-        </p>
-
-      </div>
-
-    </section>
-
-
-
-    <!-- ====================================================================
-
-         PAGE 4: NEW QUOTE (#quote-page)
-
-         ==================================================================== -->
-
-    <section id="quote-page" class="page-section hidden">
-
-      <header class="page-header">
-
-        <h1>Pre-Shipment Freight Estimator</h1>
-
-        <p>Calculate fair market baseline freight costs (Model 1) prior to shipment booking based on corridor, payload,
-          and operational conditions.</p>
-
-      </header>
-
-
-
-      <div id="quote-error-banner" class="alert-banner alert-danger hidden"></div>
-
-
-
-      <div class="card">
-
-        <form id="quote-form">
-
-          <div class="form-row-2">
-
-            <div class="form-group">
-
-              <label class="form-label" for="quote-origin">Origin Hub</label>
-
-              <select id="quote-origin" class="form-select" required></select>
-
+          <!-- Step 2 -->
+          <div class="card hidden" id="review-card">
+            <div class="card-head">
+              <div>
+                <h2>Review invoice details</h2>
+                <p class="card-sub">Check each value against the invoice. Fields marked * are needed to run the checks.</p>
+              </div>
+              <span id="extractor-used-badge" class="badge badge-neutral"></span>
             </div>
-
-            <div class="form-group">
-
-              <label class="form-label" for="quote-dest">Destination Hub</label>
-
-              <select id="quote-dest" class="form-select" required></select>
-
+            <div id="review-banner" class="alert-banner alert-info"></div>
+            <div class="review-grid">
+              <div class="review-image">
+                <a id="review-image-link" target="_blank" rel="noopener" title="Open full size">
+                  <img id="review-image" alt="Uploaded invoice">
+                </a>
+                <div class="field-hint">Click the image to open it full size.</div>
+                <div id="order-summary" class="order-summary hidden"></div>
+              </div>
+              <form id="fields-form" class="fields-form" novalidate>
+                <div id="fields-container"></div>
+                <div class="form-actions">
+                  <button type="button" id="back-btn" class="btn btn-secondary">Start over</button>
+                  <button type="submit" id="score-btn" class="btn btn-primary" disabled>
+                    <span id="score-spinner" class="spinner hidden"></span>
+                    <span id="score-btn-text">Run audit</span>
+                  </button>
+                </div>
+              </form>
             </div>
-
           </div>
 
+          <!-- Step 3 -->
+          <div id="audit-results-card" class="card hidden">
+            <div class="card-head">
+              <div>
+                <h2>Audit result</h2>
+                <p class="card-sub" id="result-subtitle"></p>
+              </div>
+              <span id="verdict-badge" class="badge badge-neutral">—</span>
+            </div>
+            <div id="gate-status-box" class="alert-banner alert-danger hidden"></div>
+            <div id="drift-box" class="alert-banner alert-warn hidden"></div>
+            <div id="audit-stats-container">
+              <div class="stats-grid-4">
+                <div class="stat-card">
+                  <div class="stat-label">Billed amount</div>
+                  <div class="stat-value" id="stat-billed-amount">—</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Fair cost</div>
+                  <div class="stat-value primary" id="stat-predicted-cost">—</div>
+                  <div class="stat-sub" id="stat-predicted-range"></div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Difference</div>
+                  <div class="stat-value" id="stat-cost-mismatch">—</div>
+                </div>
+                <div class="stat-card">
+                  <div class="stat-label">Overbilling risk</div>
+                  <div class="stat-value" id="stat-risk-proba">—</div>
+                  <div class="meter-track"><div class="meter-fill" id="risk-meter-fill"></div></div>
+                </div>
+              </div>
+            </div>
+            <div id="audit-explanation-box" class="explanation-box neutral"></div>
+            <div id="context-panel" class="context-panel hidden"></div>
+            <div class="form-actions">
+              <button type="button" id="edit-again-btn" class="btn btn-secondary">Edit details</button>
+              <button type="button" id="new-audit-btn" class="btn btn-primary">Audit another invoice</button>
+            </div>
+          </div>
+        </section>
 
-
-          <div class="form-row-2">
-
-            <div class="form-group">
-
-              <label class="form-label" for="quote-truck-type">Truck Type</label>
-
-              <select id="quote-truck-type" class="form-select" required>
-
-                <option value="6-wheeler">6-wheeler (Light / City Haul)</option>
-
-                <option value="10-wheeler" selected>10-wheeler (Medium Corridor)</option>
-
-                <option value="12-wheeler">12-wheeler (Heavy Long-Haul)</option>
-
+        <!-- ============================================================ DASHBOARD -->
+        <section id="dashboard-page" class="page-section hidden">
+          <div class="page-header">
+            <div>
+              <h1>Dashboard</h1>
+              <p>Summary of recent invoice audits.</p>
+            </div>
+            <div class="toolbar">
+              <label for="dash-n-input" class="toolbar-label">Show last</label>
+              <select id="dash-n-input" class="form-select form-select-sm">
+                <option value="50">50 audits</option>
+                <option value="100">100 audits</option>
+                <option value="300" selected>300 audits</option>
+                <option value="1000">1,000 audits</option>
               </select>
-
-            </div>
-
-            <div class="form-group">
-
-              <label class="form-label" for="quote-category">Product Category</label>
-
-              <select id="quote-category" class="form-select" required>
-
-                <option value="Steel Coils">Steel Coils</option>
-
-                <option value="Automotive Spare Parts" selected>Automotive Spare Parts</option>
-
-                <option value="Industrial Chemicals">Industrial Chemicals</option>
-
-                <option value="Bulk Textiles">Bulk Textiles</option>
-
-                <option value="Electronics Components">Electronics Components</option>
-
-              </select>
-
-            </div>
-
-          </div>
-
-
-
-          <div class="form-row-3">
-            <div class="form-group">
-              <label class="form-label" for="quote-date">Shipment date</label>
-              <input type="date" id="quote-date" class="form-input" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="quote-weight">Billable Weight (kg)</label>
-              <input type="number" id="quote-weight" class="form-input" value="12000" min="100" max="60000" step="100" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="quote-quoted-days">Quoted Transit Days</label>
-              <input type="number" id="quote-quoted-days" class="form-input" value="1.5" min="0.1" max="30" step="any" required>
+              <button type="button" id="dash-refresh-btn" class="btn btn-secondary btn-sm">Refresh</button>
             </div>
           </div>
 
-          <div class="live-context" id="quote-live-box" aria-live="polite">Pick a route and date to load live diesel and weather data.</div>
+          <div id="dash-error-banner" class="alert-banner alert-danger hidden"></div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label label-row" for="quote-distance"><span>Distance (km)</span><span class="src-tag" id="src-distance"></span></label>
-              <input type="number" id="quote-distance" class="form-input" value="1410" min="10" max="4000" step="any" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label label-row" for="quote-ideal-days"><span>Ideal Transit Days</span><span class="src-tag" id="src-ideal"></span></label>
-              <input type="number" id="quote-ideal-days" class="form-input" value="0.98" min="0.05" max="30" step="any" required>
-            </div>
+          <div class="stats-grid-4">
+            <div class="stat-card"><div class="stat-label">Invoices audited</div><div class="stat-value" id="dash-stat-total">0</div></div>
+            <div class="stat-card"><div class="stat-label">Passed validation</div><div class="stat-value approved" id="dash-stat-rate">0.0%</div></div>
+            <div class="stat-card"><div class="stat-label">Stopped by validation</div><div class="stat-value pending" id="dash-stat-rejected">0</div></div>
+            <div class="stat-card"><div class="stat-label">Flagged for audit</div><div class="stat-value flagged" id="dash-stat-flagged">0</div></div>
           </div>
 
-          <div class="form-row-2">
-            <div class="form-group">
-              <label class="form-label label-row" for="quote-fuel-price"><span>Diesel Price (₹/L)</span><span class="src-tag" id="src-fuel"></span></label>
-              <input type="number" id="quote-fuel-price" class="form-input" value="94.5" min="50" max="150" step="any" required>
+          <div class="card">
+            <div class="card-head"><h2>Recent audits</h2></div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Invoice file</th><th>Order</th><th>Carrier</th>
+                    <th class="num">Billed (₹)</th><th class="num">Fair cost (₹)</th><th class="num">Risk</th><th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="recent-audits-tbody">
+                  <tr><td colspan="8" class="empty-cell">Loading…</td></tr>
+                </tbody>
+              </table>
             </div>
-            <div class="form-group">
-              <label class="form-label label-row" for="quote-weather"><span>Weather Severity Score</span><span class="src-tag" id="src-weather"></span></label>
-              <input type="number" id="quote-weather" class="form-input" value="0" min="0" max="40" step="any" required>
-              <div class="field-hint">2 per heavy-rain day (&gt;20 mm) + 3 per high-wind day (&gt;40 km/h) + 2 per heat day (&gt;45°C) at the destination during transit.</div>
+            <p class="disclaimer-note" id="dash-storage-note"></p>
+          </div>
+
+          <div class="card">
+            <div class="card-head"><h2>Why invoices were stopped</h2></div>
+            <div id="rejection-breakdown-container"><div class="muted-note">Loading…</div></div>
+          </div>
+        </section>
+
+        <!-- ============================================================ CARRIERS -->
+        <section id="vendors-page" class="page-section hidden">
+          <div class="page-header">
+            <div>
+              <h1>Carriers</h1>
+              <p>Transporters ranked by how often their invoices are flagged.</p>
             </div>
           </div>
-
-          <div id="quote-drift-box" class="alert-banner alert-warn hidden"></div>
-
-          <button type="submit" id="quote-submit-btn" class="btn btn-primary"
-            style="width: 100%; margin-top: calc(var(--space-unit) * 1);">
-
-            <span id="quote-spinner" class="spinner hidden"></span>
-
-            <span id="quote-btn-text">Calculate Freight Estimate</span>
-
-          </button>
-
-        </form>
-
-      </div>
-
-
-
-      <!-- Quote Output Card -->
-
-      <div id="quote-result-card" class="card hidden">
-
-        <div style="text-align: center; padding: calc(var(--space-unit) * 2) 0;">
-
-          <div
-            style="font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
-
-            Predicted Fair Market Cost
-
-          </div>
-
-          <div id="quote-cost-display"
-            style="font-size: 2.8rem; font-weight: 800; color: #60a5fa; letter-spacing: -0.03em;">
-
-            ₹0.00
-
-          </div>
-          <div id="quote-interval-display"
-            style="font-size: 1.05rem; font-weight: 600; color: #93c5fd; margin-top: 6px;"></div>
-          <div id="quote-drivers-card" class="hidden"
-            style="margin-top: 20px; text-align: left; background: rgba(30, 41, 59, 0.7); border: 1px solid var(--color-border); border-radius: 8px; padding: 14px 18px;">
-            <div
-              style="font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: var(--color-text-dim); letter-spacing: 0.05em; margin-bottom: 8px;">
-              Cost Build-up: Fuel + Tolls + Driver + Model Adjustment
+          <div id="vendors-error-banner" class="alert-banner alert-danger hidden"></div>
+          <div class="card">
+            <div class="table-tools">
+              <input type="search" id="vendor-search-input" class="form-input" placeholder="Search by carrier name or ID" aria-label="Search carriers">
+              <span id="vendor-count-label" class="muted-note">Showing 0 carriers</span>
             </div>
-            <div id="quote-drivers-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
+            <div class="table-responsive">
+              <table class="data-table" id="vendors-table">
+                <thead>
+                  <tr>
+                    <th data-sort="vendor_name" data-title="Carrier">Carrier</th>
+                    <th data-sort="vendor_id" data-title="Carrier ID">Carrier ID</th>
+                    <th data-sort="total_invoices" data-title="Invoices" class="num">Invoices</th>
+                    <th data-sort="flagged_invoices" data-title="Flagged" class="num">Flagged</th>
+                    <th data-sort="risk_score" data-title="Risk score" class="num">Risk score ▼</th>
+                  </tr>
+                </thead>
+                <tbody id="vendors-tbody">
+                  <tr><td colspan="5" class="empty-cell">Loading carriers…</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="disclaimer-note">Risk score = (flagged + 0.12) / (invoices + 2), using past invoices only. Carriers with no history start at 0%.</p>
           </div>
+        </section>
 
-          <p style="color: var(--color-text-dim); font-size: 0.88rem; margin-top: 10px;">
+        <!-- ============================================================ QUOTE -->
+        <section id="quote-page" class="page-section hidden">
+          <div class="page-header">
+            <div>
+              <h1>Freight Quote</h1>
+              <p>Estimate the fair cost of a trip before booking a transporter.</p>
+            </div>
+          </div>
+          <div id="quote-error-banner" class="alert-banner alert-danger hidden"></div>
 
-            Model 1: the standard fuel + toll + driver cost build-up, with an XGBoost correction learned from historical shipments (cargo, weight, weather, transit padding).
+          <div class="quote-layout">
+            <div class="card">
+              <form id="quote-form">
+                <div class="form-section-title">Route and date</div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label" for="quote-origin">From</label>
+                    <select id="quote-origin" class="form-select" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quote-dest">To</label>
+                    <select id="quote-dest" class="form-select" required></select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quote-date">Shipment date</label>
+                    <input type="date" id="quote-date" class="form-input" required>
+                  </div>
+                </div>
 
-          </p>
+                <div class="form-section-title">Load</div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label" for="quote-category">Goods</label>
+                    <select id="quote-category" class="form-select" required>
+                      <option value="Steel Coils">Steel Coils</option>
+                      <option value="Automotive Spare Parts" selected>Automotive Spare Parts</option>
+                      <option value="Industrial Chemicals">Industrial Chemicals</option>
+                      <option value="Bulk Textiles">Bulk Textiles</option>
+                      <option value="Electronics Components">Electronics Components</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quote-weight">Billable weight (kg)</label>
+                    <input type="number" id="quote-weight" class="form-input" value="12000" min="100" max="60000" step="100" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quote-truck-type">Truck</label>
+                    <select id="quote-truck-type" class="form-select" required>
+                      <option value="6-wheeler">6-wheeler (up to 9 t)</option>
+                      <option value="10-wheeler" selected>10-wheeler (9 to 16 t)</option>
+                      <option value="12-wheeler">12-wheeler (above 16 t)</option>
+                    </select>
+                    <div class="field-hint" id="truck-hint"></div>
+                  </div>
+                </div>
 
-        </div>
+                <div class="form-section-title">Trip details <span class="section-note">Filled automatically from the route and date. You can change them.</span></div>
+                <div class="live-context" id="quote-live-box" aria-live="polite">Pick a route and date to load the live diesel price and weather.</div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label label-row" for="quote-distance"><span>Distance (km)</span><span class="src-tag" id="src-distance"></span></label>
+                    <input type="number" id="quote-distance" class="form-input" value="1410" min="10" max="4000" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label label-row" for="quote-ideal-days"><span>Ideal transit (days)</span><span class="src-tag" id="src-ideal"></span></label>
+                    <input type="number" id="quote-ideal-days" class="form-input" value="0.98" min="0.05" max="30" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="quote-quoted-days">Quoted transit (days)</label>
+                    <input type="number" id="quote-quoted-days" class="form-input" value="1.5" min="0.1" max="30" step="any" required>
+                  </div>
+                </div>
+                <div class="form-row-3">
+                  <div class="form-group">
+                    <label class="form-label label-row" for="quote-fuel-price"><span>Diesel price (₹/L)</span><span class="src-tag" id="src-fuel"></span></label>
+                    <input type="number" id="quote-fuel-price" class="form-input" value="94.5" min="50" max="150" step="any" required>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label label-row" for="quote-weather"><span>Weather severity</span><span class="src-tag" id="src-weather"></span></label>
+                    <input type="number" id="quote-weather" class="form-input" value="0" min="0" max="40" step="any" required>
+                    <div class="field-hint">2 per heavy-rain day, 3 per high-wind day, 2 per extreme-heat day.</div>
+                  </div>
+                </div>
 
-      </div>
+                <div id="quote-drift-box" class="alert-banner alert-warn hidden"></div>
+                <div class="form-actions">
+                  <button type="submit" id="quote-submit-btn" class="btn btn-primary">
+                    <span id="quote-spinner" class="spinner hidden"></span>
+                    <span id="quote-btn-text">Calculate fair cost</span>
+                  </button>
+                </div>
+              </form>
+            </div>
 
-    </section>
+            <div id="quote-result-card" class="card quote-result hidden">
+              <div class="stat-label">Fair cost estimate</div>
+              <div id="quote-cost-display" class="quote-cost">₹0.00</div>
+              <div id="quote-interval-display" class="quote-range"></div>
+              <div id="quote-drivers-card" class="breakdown hidden">
+                <div class="breakdown-title">Cost build-up</div>
+                <div id="quote-drivers-list" class="breakdown-list"></div>
+              </div>
+              <p class="disclaimer-note">Fuel, toll and driver cost, adjusted by a model trained on past shipments.</p>
+            </div>
+          </div>
+        </section>
 
+      </main>
+    </div>
+  </div>
 
-
-  </main>
-
-
-
-  <!-- JavaScript Modules -->
-  <script src="js/api.js?v=3.1"></script>
-  <script src="js/router.js?v=3.1"></script>
-  <script src="js/audit.js?v=3.1"></script>
-  <script src="js/dashboard.js?v=3.1"></script>
-  <script src="js/vendors.js?v=3.1"></script>
-  <script src="js/quote.js?v=3.1"></script>
+  <script src="js/api.js?v=4.0"></script>
+  <script src="js/router.js?v=4.0"></script>
+  <script src="js/audit.js?v=4.0"></script>
+  <script src="js/dashboard.js?v=4.0"></script>
+  <script src="js/vendors.js?v=4.0"></script>
+  <script src="js/quote.js?v=4.0"></script>
 </body>
-
 </html>

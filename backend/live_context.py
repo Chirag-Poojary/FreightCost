@@ -105,6 +105,14 @@ def training_ranges():
     return _train
 
 
+DRIFT_LABELS = {
+    "expected_fuel_price": ("diesel price", " Rs/L"),
+    "expected_weather_score": ("weather severity", ""),
+    "distance_km": ("distance", " km"),
+    "billable_weight_kg": ("weight", " kg"),
+}
+
+
 def drift_check(feature, value):
     """None if inside the training range, else a human-readable warning."""
     if value is None:
@@ -113,10 +121,11 @@ def drift_check(feature, value):
     if not r:
         return None
     if value > r["max"] or value < r["min"]:
-        return (f"{feature} = {value} is outside the training range [{r['min']}, {r['max']}]. "
-                f"Model 1 still scales its fuel/toll/driver baseline correctly, but its learned "
-                f"correction is held at the nearest training value. Retrain once enough recent "
-                f"data has been collected.")
+        label, unit = DRIFT_LABELS.get(feature, (feature, ""))
+        side = "higher" if value > r["max"] else "lower"
+        return (f"The {label} ({value:,.2f}{unit}) is {side} than anything in the model's training data "
+                f"({r['min']:,.2f} to {r['max']:,.2f}{unit}). The cost formula still accounts for it, but "
+                f"treat the estimate with extra care until the model is retrained on recent data.")
     return None
 
 

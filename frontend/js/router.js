@@ -5,10 +5,10 @@
 
 const router = {
   routes: {
-    "#audit": { sectionId: "audit-page", onShow: () => {} },
-    "#dashboard": { sectionId: "dashboard-page", onShow: () => window.dashboardPage?.load() },
-    "#vendors": { sectionId: "vendors-page", onShow: () => window.vendorsPage?.load() },
-    "#quote": { sectionId: "quote-page", onShow: () => { if (typeof quotePage !== "undefined") quotePage.onShow(); } },
+    "#audit": { sectionId: "audit-page", title: "Invoice Audit", onShow: () => {} },
+    "#dashboard": { sectionId: "dashboard-page", title: "Dashboard", onShow: () => window.dashboardPage?.load() },
+    "#vendors": { sectionId: "vendors-page", title: "Carriers", onShow: () => window.vendorsPage?.load() },
+    "#quote": { sectionId: "quote-page", title: "Freight Quote", onShow: () => { if (typeof quotePage !== "undefined") quotePage.onShow(); } },
   },
 
   defaultHash: "#audit",
@@ -27,12 +27,15 @@ const router = {
       });
     });
 
+    // Mobile sidebar
+    this.initMobileMenu();
+
     // Backend connection settings listener
     this.initBackendSettings();
 
     // Check system health on startup
     this.checkHealth();
-    setInterval(() => this.checkHealth(), 15000);
+    setInterval(() => this.checkHealth(), 60000);
 
     // Initial navigation
     this.handleRoute();
@@ -58,7 +61,7 @@ const router = {
         resetBtn.textContent = "Resetting...";
         await this.checkHealth();
         resetBtn.disabled = false;
-        resetBtn.textContent = "Reset to Default";
+        resetBtn.textContent = "Reset to default";
       });
     }
 
@@ -83,6 +86,19 @@ const router = {
     }
   },
 
+  initMobileMenu() {
+    const sidebar = document.getElementById("sidebar");
+    const btn = document.getElementById("menu-btn");
+    if (!sidebar || !btn) return;
+    const backdrop = document.createElement("div");
+    backdrop.className = "sidebar-backdrop";
+    document.body.appendChild(backdrop);
+    const close = () => { sidebar.classList.remove("open"); backdrop.classList.remove("open"); };
+    btn.addEventListener("click", () => { sidebar.classList.add("open"); backdrop.classList.add("open"); });
+    backdrop.addEventListener("click", close);
+    sidebar.querySelectorAll(".nav-link").forEach(a => a.addEventListener("click", close));
+  },
+
   handleRoute() {
     let hash = window.location.hash || this.defaultHash;
     if (!this.routes[hash]) hash = this.defaultHash;
@@ -98,6 +114,10 @@ const router = {
         }
       }
     });
+
+    const titleEl = document.getElementById("topbar-title");
+    if (titleEl) titleEl.textContent = this.routes[hash].title;
+    document.title = `${this.routes[hash].title} | RateRight`;
 
     // Update active nav link
     document.querySelectorAll(".nav-link").forEach(link => {
@@ -127,16 +147,16 @@ const router = {
       const res = await api.health();
       if (res.status === "ok") {
         dot.className = "status-dot online";
-        label.textContent = res.database === "connected" ? "Engine Online" : "DB Disconnected";
+        label.textContent = res.database_mode === "local_csv" ? "Online (sample data)" : "System online";
         if (banner) banner.classList.add("hidden");
       } else {
         dot.className = "status-dot offline";
-        label.textContent = "Engine Degraded";
+        label.textContent = "Service degraded";
         if (banner) banner.classList.remove("hidden");
       }
     } catch (_) {
       dot.className = "status-dot offline";
-      label.textContent = "Backend Offline";
+      label.textContent = "Server offline";
       if (banner) banner.classList.remove("hidden");
     }
   }

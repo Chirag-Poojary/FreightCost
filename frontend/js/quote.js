@@ -40,12 +40,22 @@ const quotePage = {
     });
 
     HUBS.forEach(h => {
-      this.originSelect.add(new Option(`${h.id} - ${h.name}`, h.id));
-      this.destSelect.add(new Option(`${h.id} - ${h.name}`, h.id));
+      this.originSelect.add(new Option(h.name, h.id));
+      this.destSelect.add(new Option(h.name, h.id));
     });
     this.originSelect.value = "HUB01";
     this.destSelect.value = "HUB05";
-    this.dateInput.value = new Date().toISOString().slice(0, 10);
+    // Local date (toISOString() would give yesterday's date before 05:30 IST).
+    const now = new Date();
+    this.dateInput.value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+
+    // The models were trained with the truck chosen from the weight; keep them consistent.
+    this.weightInput = $("quote-weight");
+    this.truckSelect = $("quote-truck-type");
+    this.truckHint = $("truck-hint");
+    this.weightInput.addEventListener("input", () => this.syncTruck(true));
+    this.truckSelect.addEventListener("change", () => this.syncTruck(false));
+    this.syncTruck(true);
 
     this.form.addEventListener("submit", e => { e.preventDefault(); this.calculateQuote(); });
     [this.originSelect, this.destSelect, this.dateInput].forEach(el =>
@@ -56,6 +66,21 @@ const quotePage = {
      ["quote-fuel-price", "src-fuel"], ["quote-weather", "src-weather"]].forEach(([inp, tag]) =>
       document.getElementById(inp).addEventListener("input", () => { document.getElementById(tag).textContent = "edited"; }));
     if (location.hash === "#quote") this.scheduleContext(0);
+  },
+
+  truckForWeight(kg) {
+    if (kg <= 9000) return "6-wheeler";
+    if (kg <= 16000) return "10-wheeler";
+    return "12-wheeler";
+  },
+
+  syncTruck(fromWeight) {
+    const kg = parseFloat(this.weightInput.value);
+    if (!(kg > 0)) { this.truckHint.textContent = ""; return; }
+    const suggested = this.truckForWeight(kg);
+    if (fromWeight) this.truckSelect.value = suggested;
+    this.truckHint.textContent = this.truckSelect.value === suggested
+      ? "" : `For ${kg.toLocaleString("en-IN")} kg we normally use a ${suggested}.`;
   },
 
   // Called by the router the first time the page is shown.
@@ -108,7 +133,7 @@ const quotePage = {
 
   showDrift(warnings) {
     if (warnings?.length) {
-      this.driftBox.innerHTML = "<strong>Data drift:</strong> " + warnings.map(escapeHtml).join("<br>");
+      this.driftBox.innerHTML = "<strong>Note on prices:</strong> " + warnings.map(escapeHtml).join("<br>");
       this.driftBox.classList.remove("hidden");
     } else {
       this.driftBox.classList.add("hidden");
@@ -145,7 +170,7 @@ const quotePage = {
       const fmt = v => Number(v).toLocaleString("en-IN", { maximumFractionDigits: 0 });
       this.costDisplay.textContent = "₹" + Number(res.predicted_cost || 0).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const intervalEl = document.getElementById("quote-interval-display");
-      intervalEl.textContent = res.interval_lower != null ? `80% range: ₹${fmt(res.interval_lower)} – ₹${fmt(res.interval_upper)}` : "";
+      intervalEl.textContent = res.interval_lower != null ? `Likely range ₹${fmt(res.interval_lower)} to ₹${fmt(res.interval_upper)}` : "";
 
       const driversCard = document.getElementById("quote-drivers-card");
       const driversList = document.getElementById("quote-drivers-list");
@@ -155,23 +180,23 @@ const quotePage = {
         const row = document.createElement("div");
         row.className = "label-row";
         const name = d.feature.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
-        row.innerHTML = `<span>${escapeHtml(name)}</span><span style="color:${d.feature !== "model_adjustment" ? "var(--color-text)" : d.impact > 0 ? "var(--color-flagged-text)" : "var(--color-approved-text)"};font-weight:600;">${d.impact > 0 ? "+" : "−"}₹${fmt(Math.abs(d.impact))}</span>`;
+        row.innerHTML = `<span>${escapeHtml(name)}</span><span style="color:${d.feature !== "model_adjustment" ? "var(--text)" : d.impact > 0 ? "var(--danger)" : "var(--success)"};font-weight:600;">${d.impact > 0 ? "+" : "−"}₹${fmt(Math.abs(d.impact))}</span>`;
         driversList.appendChild(row);
       });
       driversCard.classList.toggle("hidden", !rows.length);
       const warn = [...(res.drift_warnings || [])];
-      if (res.price_check && res.price_check.status !== "ok") warn.unshift(`Price logic check (${res.price_check.status.replace("_", " ")}): ${res.price_check.message}`);
+      if (res.price_check && res.price_check.status !== "ok") warn.unshift(`Price check (${res.price_check.status.replace("_", " ")}): ${res.price_check.message}`);
       this.showDrift(warn);
 
       this.resultCard.classList.remove("hidden");
       this.resultCard.scrollIntoView({ behavior: "smooth", block: "nearest" });
     } catch (err) {
-      this.errorBanner.textContent = `Cost estimation failed: ${err.message}`;
+      this.errorBanner.textContent = `Could not calculate the fair cost: ${err.message}`;
       this.errorBanner.classList.remove("hidden");
     } finally {
       this.submitBtn.disabled = false;
       this.btnSpinner.classList.add("hidden");
-      this.btnText.textContent = "Calculate Freight Estimate";
+      this.btnText.textContent = "Calculate fair cost";
     }
   },
 };

@@ -85,6 +85,12 @@ const api = {
 
   extractors: () => apiCall("/api/extractors"),
 
+  /** Logistics hubs (city, state) for the city dropdowns. */
+  hubs: () => apiCall("/api/hubs"),
+
+  /** Latest audits for the dashboard table. */
+  recentAudits: (limit = 20) => apiCall(`/api/audits/recent?limit=${encodeURIComponent(limit)}`),
+
   /** Live diesel price + Open-Meteo weather for a route and date. */
   context: (origin, dest, shipDate, transitDays) => {
     const q = new URLSearchParams({ origin_hub_id: origin, dest_hub_id: dest });

@@ -56,19 +56,36 @@ MODEL_DIR = os.path.join(_BUNDLE_DIR, "code", "output", "models")
 from fastapi.responses import JSONResponse
 from fastapi import Request
 
-app = FastAPI(title="FreightCost Audit API", version="2.0")
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(_app):
+    load_models()          # model files are loaded once, at startup
+    yield
+
+
+app = FastAPI(title="RateRight Freight Audit API", version="3.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"],
                    allow_methods=["*"], allow_headers=["*"])
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """Log the full error on the server; never send internals to the browser."""
     import traceback
+    import uuid
+    ref = uuid.uuid4().hex[:8]
+    print(f"[error {ref}] {request.method} {request.url.path}")
     traceback.print_exc()
     return JSONResponse(
         status_code=500,
-        content={"detail": str(exc)},
+        content={"detail": f"Something went wrong on the server (reference {ref}). Please try again."},
         headers={"Access-Control-Allow-Origin": "*"}
     )
+
+
+MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+ALLOWED_IMAGE_FORMATS = {"PNG", "JPEG", "WEBP"}
 
 _db = None
 _m1 = None
@@ -95,7 +112,6 @@ def get_db():
     return _db
 
 
-@app.on_event("startup")
 def load_models():
     global _m1, _m2
     _m1 = FreightCostModel(load_bundle(os.path.join(MODEL_DIR, "model_1_freight_cost.pkl")))
@@ -105,12 +121,13 @@ def load_models():
 @app.get("/api/health")
 def health():
     try:
-        get_db()
+        db_mode = get_db().mode
         db_status = "connected"
     except Exception:
-        db_status = "not_connected"
+        db_mode, db_status = None, "not_connected"
     return {"status": "ok", "models_loaded": _m1 is not None and _m2 is not None,
-            "database": db_status, "extractors": extractors.available_extractors()}
+            "database": db_status, "database_mode": db_mode,
+            "extractors": extractors.available_extractors()}
 
 
 @app.get("/api/extractors")
@@ -184,12 +201,30 @@ def _synthesize_order(fields, db):
     fuel_info = live_context.get_diesel(state, order_date)
     fuel_price = fuel_info.get("price") or 95.0
 
+    categories = (_m1.meta.get("product_categories") if _m1 else None) or []
+    category = fields.get("product_category")
+    if category not in categories:
+        # Most common category in the training data; the user can pick the real one in the form.
+        category = "Automotive Spare Parts"
+
+    # Weather the model expects for the trip window, measured live (training used the same score).
+    weather_score = 0.0
+    if dest_hub and fields.get("invoice_date"):
+        try:
+            end = live_context._to_date(fields["invoice_date"])
+            start = end - timedelta(days=max(1, int(round(actual_days + 0.49))))
+            wx = live_context.get_weather(dest_hub, start, end)
+            if wx.get("ok") and wx.get("score") is not None:
+                weather_score = float(wx["score"])
+        except Exception:
+            pass
+
     return {
         "order_id": fields.get("order_id", "NEW_ORDER"),
         "vendor_id": fields.get("vendor_id", "NEW_VENDOR"),
         "origin_hub_id": orig_hub or "HUB01",
         "dest_hub_id": dest_hub or "HUB02",
-        "product_category": "Automotive Spare Parts",
+        "product_category": category,
         "order_date": order_date,
         "weight_kg": weight,
         "billable_weight_kg": weight,
@@ -199,7 +234,7 @@ def _synthesize_order(fields, db):
         "truck_type": truck,
         "state": state,
         "expected_fuel_price": fuel_price,
-        "expected_weather_score": 0.0,
+        "expected_weather_score": weather_score,
         "_synthesized": True,
     }
 
@@ -263,9 +298,20 @@ def _field_checks(fields, db):
 @app.post("/api/extract", response_model=ExtractResponse)
 async def extract_invoice(file: UploadFile = File(...), extractor: str = "auto"):
     db = get_db()
-    suffix = os.path.splitext(file.filename or "")[1] or ".png"
+    data = await file.read(MAX_UPLOAD_BYTES + 1)
+    if len(data) > MAX_UPLOAD_BYTES:
+        raise HTTPException(status_code=413, detail="The image is larger than 10 MB. Please upload a smaller file.")
+    try:
+        from io import BytesIO
+        from PIL import Image
+        fmt = Image.open(BytesIO(data)).format
+    except Exception:
+        fmt = None
+    if fmt not in ALLOWED_IMAGE_FORMATS:
+        raise HTTPException(status_code=415, detail="Please upload a PNG, JPG or WEBP image of the invoice.")
+    suffix = {"PNG": ".png", "JPEG": ".jpg", "WEBP": ".webp"}[fmt]
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        tmp.write(await file.read())
+        tmp.write(data)
         tmp_path = tmp.name
     try:
         fields, meta = extractors.extract(tmp_path, extractor)
@@ -347,7 +393,10 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
         ref_ctx = db.get_reference_invoice_context(fields["order_id"])
     else:
         order = _synthesize_order(fields, db)
-        ref_ctx = {"adverse_weather_days": 0.0, "vendor_padding_ratio": 0.0}
+        # 0.0 is outside anything Model 2 saw in training; use the carrier's typical
+        # quoted/ideal ratio (or the overall median for an unknown carrier).
+        ref_ctx = {"adverse_weather_days": 0.0,
+                   "vendor_padding_ratio": db.get_vendor_padding_ratio(fields["vendor_id"])}
 
     vstats = db.get_vendor_stats(fields["vendor_id"])
     ctx_notes = []
@@ -358,8 +407,9 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
     else:
         vendor_risk = causal_vendor_risk(vstats["total_invoices"], vstats["flagged_invoices"])
 
+    if order.get("_synthesized"):
+        ctx_notes.append("New order: route, weight and diesel price estimated from the invoice")
     # Fill any order-level inputs the ERP row lacks from live sources.
-    ctx_notes = []
     if order.get("expected_fuel_price") in (None, "") or order.get("expected_fuel_price") != order.get("expected_fuel_price"):
         fuel = live_context.get_diesel(order.get("state") or "", order.get("order_date"))
         order["expected_fuel_price"] = fuel.get("price") or 91.5
@@ -527,6 +577,18 @@ def vendor_leaderboard():
              "total_invoices": r.get("total_invoices", 0),
              "flagged_invoices": r.get("flagged_invoices", 0),
              "risk_score": r.get("risk_score", 0.5)} for r in rows]
+
+
+@app.get("/api/audits/recent")
+def recent_audits(limit: int = Query(20, ge=1, le=200)):
+    """Latest audits for the dashboard table (no extracted-field payloads)."""
+    try:
+        rows = get_db().get_recent_audits(limit)
+    except Exception:
+        rows = []
+    keep = ("created_at", "filename", "order_id", "vendor_id", "billed_amount",
+            "model1_predicted_cost", "model2_proba", "flagged", "gate_passed", "gate_reason")
+    return [{k: r.get(k) for k in keep} for r in rows]
 
 
 @app.get("/api/dashboard", response_model=DashboardStats)

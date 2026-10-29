@@ -40,7 +40,9 @@ This project was built as a TY B.Tech (Information Technology) Specialization Ba
 - **Live context data.** Fetches the diesel price for the shipment date and state, and Open-Meteo weather for the route.
 - **Data drift warnings.** Shown when a live input falls outside the range the models were trained on.
 - **Pre-shipment quote page.** Estimates a fair cost before booking, with distance, diesel price and weather filled in automatically.
-- **Dashboard and vendor risk list.** Aggregate audit statistics and a carrier risk leaderboard.
+- **Dashboard and carrier risk list.** Audit statistics, a table of recent audits and a carrier risk leaderboard.
+- **Sample invoices.** Five sample invoices on the first page (clean, overbilled, missing field, phone photo) so new users can try the full audit before using their own invoices.
+- **Light, ERP-style interface.** Sidebar navigation, dropdowns for truck type and goods, city and carrier suggestions, and calendar pickers for dates.
 
 ---
 
@@ -222,6 +224,13 @@ uvicorn backend.main:app --port 8000
 
 Open http://localhost:8000. The backend serves the frontend as well, and the frontend uses `http://localhost:8000` automatically when opened from localhost.
 
+To run the API tests (no API keys or database needed):
+
+```bash
+pip install pytest
+SUPABASE_URL= SUPABASE_SERVICE_KEY= python -m pytest tests -q
+```
+
 Without Supabase credentials the backend runs on the local CSV files in `code/output/`. Without any extraction key, invoices can still be audited by typing the fields in by hand.
 
 ---
@@ -254,6 +263,7 @@ Model names are configurable because providers retire models regularly. Never co
 | POST | `/api/audit` | One-shot extract and score for scripts; returns `needs_input` when fields are missing |
 | GET | `/api/context` | Route distance, live diesel price, weather and drift warnings for a route and date |
 | GET | `/api/hubs` | List of logistics hubs |
+| GET | `/api/audits/recent` | Latest audits for the dashboard table |
 | POST | `/api/quote` | Fair cost estimate for a planned shipment |
 | GET | `/api/dashboard` | Aggregate audit statistics |
 | GET | `/api/vendors` | Carrier risk leaderboard |
@@ -288,6 +298,10 @@ Training takes about 25 seconds on a laptop CPU. Commit the new model files and 
 - **Database:** Supabase. Create the tables with `backend/schema.sql`, then load the reference data with `backend/migrate_to_supabase.py`.
 
 ---
+
+## Engineering review
+
+A full review of the codebase, listing every problem found, its severity and whether it is fixed, is in [ENGINEERING_REVIEW.md](ENGINEERING_REVIEW.md).
 
 ## Limitations
 
