@@ -108,3 +108,24 @@ def test_carrier_ids_are_not_duplicated_by_case(client):
 def test_recent_audits_endpoint(client):
     rows = client.get("/api/audits/recent?limit=5").json()
     assert isinstance(rows, list) and len(rows) <= 5
+
+
+def test_result_explains_the_decision(client):
+    body = client.post("/api/score", json={"fields": CLEAN}).json()
+    assert body["summary"]
+    assert {r["status"] for r in body["reasons"]} <= {"pass", "check", "info"}
+    assert any("fair price range" in r["title"] for r in body["reasons"])
+
+
+def test_pdf_report_download(client):
+    body = client.post("/api/score", json={"fields": CLEAN}).json()
+    r = client.post("/api/report", json=body)
+    assert r.status_code == 200
+    assert r.headers["content-type"] == "application/pdf"
+    assert "RateRight_Audit_INV037976.pdf" in r.headers["content-disposition"]
+    assert r.content.startswith(b"%PDF")
+
+
+def test_pdf_report_needs_a_scored_result(client):
+    body = client.post("/api/score", json={"fields": dict(CLEAN, toll=100.0)}).json()
+    assert client.post("/api/report", json=body).status_code == 400

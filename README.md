@@ -38,6 +38,7 @@ This project was built as a TY B.Tech (Information Technology) Specialization Ba
 - **Fraud risk scoring (Model 2).** Estimates the probability that the invoice is overbilled.
 - **Price logic check.** Flags bills that are impossibly low, impossibly high or invalid, independent of Model 2.
 - **Live context data.** Fetches the diesel price for the shipment date and state, and Open-Meteo weather for the route.
+- **Explainable verdict and PDF report.** The verdict screen lists, in plain language, why the invoice was approved or flagged (bill against the fair range, risk score, price check, delay, weather, carrier history), each marked PASS, CHECK or NOTE. The same explanation can be downloaded as a two-page A4 PDF audit report with the key figures, invoice details, fair cost build-up and data sources.
 - **Data drift warnings.** Shown when a live input falls outside the range the models were trained on.
 - **Pre-shipment quote page.** Estimates a fair cost before booking, with distance, diesel price and weather filled in automatically.
 - **Dashboard and carrier risk list.** Audit statistics, a table of recent audits and a carrier risk leaderboard.
@@ -64,9 +65,10 @@ This project was built as a TY B.Tech (Information Technology) Specialization Ba
                                          e. Model 1: fair cost and range  ------->  model_1_freight_cost.pkl
                                          f. Model 2: fraud probability  ---------->  model_2_invoice_risk.pkl
                                          g. price logic check
-                                         h. verdict + explanation
- 4. Verdict screen  <---------------     (approved / flagged, fair cost build-up,
-                                          data sources, fields entered by hand)
+                                         h. verdict, plain-language reasons + explanation
+ 4. Verdict screen  <---------------     (approved / flagged, why this decision,
+                                          fair cost build-up, data sources)
+ 5. Download PDF report  ---------->    POST /api/report  (A4 audit report, reportlab)
 
  Quote page  ---------------------->    GET /api/context  ----------------------->  live diesel price + Open-Meteo
                                          POST /api/quote   ----------------------->  Model 1
@@ -180,6 +182,8 @@ backend/
   audit_core.py         Confidence gate and Model 2 feature engineering
   db.py                 Supabase access with local CSV fallback
   schemas.py            Request and response models
+  report.py             Plain-language decision reasons and the PDF audit report
+  fonts/                DejaVu Sans (prints the rupee sign in the PDF)
   schema.sql            Supabase table definitions
   migrate_to_supabase.py  One-time upload of the reference CSVs to Supabase
 code/
@@ -260,6 +264,7 @@ Model names are configurable because providers retire models regularly. Never co
 | POST | `/api/extract` | Upload an invoice image; returns fields, missing fields, field issues and order summary. No ML runs |
 | POST | `/api/check` | Re-validate user-edited fields |
 | POST | `/api/score` | Run the gate, Model 1, Model 2 and price checks on confirmed fields. Returns 422 if a required field is empty |
+| POST | `/api/report` | Takes a scored `/api/score` result and returns the explainable audit report as a PDF (400 if the invoice was not scored) |
 | POST | `/api/audit` | One-shot extract and score for scripts; returns `needs_input` when fields are missing |
 | GET | `/api/context` | Route distance, live diesel price, weather and drift warnings for a route and date |
 | GET | `/api/hubs` | List of logistics hubs |

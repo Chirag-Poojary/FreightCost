@@ -10,8 +10,8 @@ Severity: **High** = wrong results, security or data loss. **Medium** = misleadi
 
 | | Count |
 |---|---|
-| Problems found | 34 |
-| Fixed in this change | 25 |
+| Problems found | 36 |
+| Fixed | 27 |
 | Open (need a decision, credentials or real data) | 9 |
 
 ---
@@ -55,13 +55,15 @@ Severity: **High** = wrong results, security or data loss. **Medium** = misleadi
 | 21 | Low | Invalid CSS (`padding: var(--space-unit) * 3`) in the dashboard empty state. | Rewritten. | `frontend/js/dashboard.js` |
 | 22 | Low | Canonical and social-preview links pointed to `freightcost-ai.vercel.app`, which is not the app's domain. | Point to `freight-cost-nine.vercel.app`. | `frontend/index.html` |
 | 23 | Low | Dark theme with emoji icons and technical wording did not suit business users. | Light, ERP-style layout: sidebar navigation, one primary colour, SVG icons, plain business wording, RATERIGHT branding, site icon, working mobile menu. | `frontend/index.html`, `frontend/css/styles.css`, `frontend/favicon.svg` |
+| 35 | Medium | The verdict explained the decision only as one paragraph of model wording, and there was no way to keep or share it with the accounts team. | Added a plain-language "Why this decision" list (PASS / CHECK / NOTE for each check) and a downloadable PDF audit report (`POST /api/report`). DejaVu Sans is bundled so the rupee sign prints correctly. | `backend/report.py`, `backend/main.py`, `frontend/js/audit.js`, `backend/fonts/` |
+| 36 | Low | Negative amounts were shown as "₹-629.12" on the verdict screen and "₹-64" in the explanation. | Show the minus sign before the rupee sign: "−₹629.12". | `frontend/js/audit.js`, `extraction_scripts/audit_explanation.py` |
 | 24 | Low | The dashboard showed only totals, with no list of individual audits. | Added a "Recent audits" table backed by a new `/api/audits/recent` endpoint. | `frontend/js/dashboard.js`, `backend/main.py` |
 
 ### Testing
 
 | # | Severity | Problem | Fix | Files |
 |---|---|---|---|---|
-| 25 | Medium | There were no automated tests, so changes could break scoring silently. | Added 11 API tests: health, approved invoice, missing field, line-item mismatch, too-low bill, new order, impossible quote input, diesel scaling, non-image upload, carrier-ID case, recent audits. | `tests/test_api.py` |
+| 25 | Medium | There were no automated tests, so changes could break scoring silently. | Added 14 API tests: health, approved invoice, missing field, line-item mismatch, too-low bill, new order, impossible quote input, diesel scaling, non-image upload, carrier-ID case, recent audits, decision reasons, PDF report download, and no report for an unscored invoice. | `tests/test_api.py` |
 
 ---
 
@@ -83,5 +85,5 @@ Severity: **High** = wrong results, security or data loss. **Medium** = misleadi
 
 ## How this was checked
 
-- 11 API tests pass: `SUPABASE_URL= SUPABASE_SERVICE_KEY= python -m pytest tests -q`
-- Browser walk-through with Playwright and Chrome: sample gallery, manual review form, an approved and a flagged invoice, a new order with a missing field, dashboard, carriers, quote, and the mobile layout. No console errors apart from the expected "no reading model configured" when running locally without API keys.
+- 14 API tests pass: `SUPABASE_URL= SUPABASE_SERVICE_KEY= python -m pytest tests -q`
+- Browser walk-through with Playwright and Chrome: sample gallery, manual review form, an approved and a flagged invoice, a new order with a missing field, dashboard, carriers, quote, and the mobile layout, and the PDF report download. Sample reports (approved, overbilled, new order, price too low) were rendered and checked page by page. No console errors apart from the expected "no reading model configured" when running locally without API keys.

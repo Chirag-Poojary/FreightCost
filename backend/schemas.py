@@ -48,6 +48,9 @@ class AuditResult(BaseModel):
     explanation: Optional[str] = None
     context: dict[str, Any] = {}
     drift_warnings: list[str] = []
+    summary: Optional[str] = None             # one-line plain-language verdict
+    reasons: list[dict] = []                   # [{status: pass|check|info, title, detail}]
+    trip: dict[str, Any] = {}
 
 
 class VendorRisk(BaseModel):

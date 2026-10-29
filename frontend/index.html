@@ -19,7 +19,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="stylesheet" href="css/styles.css?v=4.0">
+  <link rel="stylesheet" href="css/styles.css?v=4.1">
 </head>
 <body>
   <div class="app-shell">
@@ -225,9 +225,17 @@
                 </div>
               </div>
             </div>
+            <div id="reasons-box" class="reasons hidden">
+              <div class="reasons-title">Why this decision</div>
+              <ul id="reasons-list" class="reasons-list"></ul>
+            </div>
             <div id="audit-explanation-box" class="explanation-box neutral"></div>
             <div id="context-panel" class="context-panel hidden"></div>
             <div class="form-actions">
+              <button type="button" id="download-report-btn" class="btn btn-secondary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+                <span id="download-report-text">Download PDF report</span>
+              </button>
               <button type="button" id="edit-again-btn" class="btn btn-secondary">Edit details</button>
               <button type="button" id="new-audit-btn" class="btn btn-primary">Audit another invoice</button>
             </div>
@@ -431,11 +439,11 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=4.0"></script>
-  <script src="js/router.js?v=4.0"></script>
-  <script src="js/audit.js?v=4.0"></script>
-  <script src="js/dashboard.js?v=4.0"></script>
-  <script src="js/vendors.js?v=4.0"></script>
-  <script src="js/quote.js?v=4.0"></script>
+  <script src="js/api.js?v=4.1"></script>
+  <script src="js/router.js?v=4.1"></script>
+  <script src="js/audit.js?v=4.1"></script>
+  <script src="js/dashboard.js?v=4.1"></script>
+  <script src="js/vendors.js?v=4.1"></script>
+  <script src="js/quote.js?v=4.1"></script>
 </body>
 </html>

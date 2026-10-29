@@ -47,13 +47,14 @@ from audit_core import (FreightCostModel, InvoiceRiskModel,  # noqa: E402
                         build_model2_features, causal_vendor_risk, check_inputs,
                         confidence_gate, load_bundle, score_model2)
 from db import Db                                                 # noqa: E402
+import report                                                     # noqa: E402
 from schemas import (AuditResult, ContextResponse, DashboardStats,  # noqa: E402
                      ExtractResponse, QuoteRequest, QuoteResponse, ScoreRequest,
                      VendorRisk)
 
 MODEL_DIR = os.path.join(_BUNDLE_DIR, "code", "output", "models")
 
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi import Request
 
 from contextlib import asynccontextmanager
@@ -474,6 +475,18 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
         explanation = "Price logic check: " + " ".join(rule_msgs) + "\n\n" + explanation
 
     drift = [w for w in (live_context.drift_check("expected_fuel_price", float(order["expected_fuel_price"])),) if w]
+    hub = live_context.hubs()
+    city = lambda h: hub.loc[h, "city"] if h in hub.index else h
+    trip = {"origin": fields.get("origin") if order.get("_synthesized") and fields.get("origin") else city(order.get("origin_hub_id")),
+            "destination": fields.get("destination") if order.get("_synthesized") and fields.get("destination") else city(order.get("dest_hub_id")),
+            "distance_km": float(order.get("distance_km") or 0) or None,
+            "truck_type": order.get("truck_type"), "product_category": order.get("product_category"),
+            "billable_weight_kg": float(order.get("billable_weight_kg") or 0) or None,
+            "quoted_days": float(order["quoted_days"]) if order.get("quoted_days") not in (None, "") else None,
+            "commercial_delay_days": round(float(features["commercial_delay_days"]), 2),
+            "new_order": bool(order.get("_synthesized"))}
+    reason_ctx = {"adverse_weather_days": float(adverse), "adverse_weather_source": wx_source,
+                  "vendor_historical_risk_score": vendor_risk, "notes": ctx_notes}
     result.update({
         "order_id": fields["order_id"], "vendor_id": fields["vendor_id"],
         "model1_predicted_cost": features["model_a_predicted_cost"],
@@ -495,6 +508,10 @@ def _score(fields, filename, extractor_used, extractor_model, manual_fields, ai_
             "notes": ctx_notes,
         },
         "drift_warnings": drift,
+        "trip": trip,
+        "summary": report.build_summary(flagged, flag_source, bill_check, features),
+        "reasons": report.build_reasons(features, flagged, flag_source, proba, bill_check,
+                                        reason_ctx, manual_fields, drift),
     })
     db.bump_vendor_stats(fields["vendor_id"], flagged)
     _log(db, result, ai_fields)
@@ -544,6 +561,17 @@ async def audit_invoice(file: UploadFile = File(...), extractor: str = "auto"):
                 "explanation": "Some required fields could not be read. Enter them and call /api/score."}
     return _score(ext["fields"], ext["filename"], ext["extractor_used"],
                   ext["extractor_model"], [], ext["fields"])
+
+
+@app.post("/api/report")
+def audit_report(result: AuditResult):
+    """Download the explainable audit verdict as a PDF."""
+    if result.status != "scored":
+        raise HTTPException(status_code=400, detail="A report is available only for a scored invoice.")
+    pdf, ref = report.render_pdf(result.model_dump())
+    inv = "".join(c for c in str(result.extracted_fields.get("invoice_id") or ref) if c.isalnum() or c in "-_")
+    return Response(content=pdf, media_type="application/pdf",
+                    headers={"Content-Disposition": f'attachment; filename="RateRight_Audit_{inv}.pdf"'})
 
 
 # ---------------------------------------------------------- live context

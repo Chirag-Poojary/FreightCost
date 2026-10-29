@@ -83,6 +83,22 @@ const api = {
     body: JSON.stringify(payload),
   }),
 
+  /** Download the explainable audit verdict as a PDF (returns {blob, filename}). */
+  reportPdf: async (result) => {
+    const res = await fetch(`${getApiBase()}/api/report`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(result),
+    });
+    if (!res.ok) {
+      let msg = `${res.status} ${res.statusText}`;
+      try { const d = (await res.json()).detail; if (typeof d === "string") msg = d; } catch (_) { /* keep status text */ }
+      throw new Error(msg);
+    }
+    const m = /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") || "");
+    return { blob: await res.blob(), filename: m ? m[1] : "RateRight_Audit.pdf" };
+  },
+
   extractors: () => apiCall("/api/extractors"),
 
   /** Logistics hubs (city, state) for the city dropdowns. */

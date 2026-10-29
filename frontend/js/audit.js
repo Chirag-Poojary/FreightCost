@@ -104,6 +104,29 @@ const auditPage = {
     document.getElementById("back-btn").addEventListener("click", () => this.reset());
     document.getElementById("new-audit-btn").addEventListener("click", () => this.reset());
     document.getElementById("edit-again-btn").addEventListener("click", () => this.showStep(2));
+    document.getElementById("download-report-btn").addEventListener("click", () => this.downloadReport());
+  },
+
+  async downloadReport() {
+    if (!this.lastResult) return;
+    const btn = document.getElementById("download-report-btn");
+    const label = document.getElementById("download-report-text");
+    btn.disabled = true;
+    label.textContent = "Preparing PDF…";
+    try {
+      const { blob, filename } = await api.reportPdf(this.lastResult);
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href: url, download: filename });
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (err) {
+      this.showError(`Could not create the PDF report: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      label.textContent = "Download PDF report";
+    }
   },
 
   // ---------------------------------------------------------------- setup
@@ -458,6 +481,7 @@ const auditPage = {
   },
 
   renderResults(res) {
+    this.lastResult = res;
     const verdict = document.getElementById("verdict-badge");
     const explanation = document.getElementById("audit-explanation-box");
     document.getElementById("gate-status-box").classList.add("hidden");
@@ -480,13 +504,20 @@ const auditPage = {
     }
     explanation.textContent = res.explanation || "";
 
+    const reasonsBox = document.getElementById("reasons-box");
+    const tags = { pass: "PASS", check: "CHECK", info: "NOTE" };
+    document.getElementById("reasons-list").innerHTML = (res.reasons || []).map(r => `
+      <li><span class="r-tag ${tags[r.status] ? r.status : "info"}">${tags[r.status] || "NOTE"}</span>
+        <div><div class="r-title">${escapeHtml(r.title)}</div><div class="r-detail">${escapeHtml(r.detail)}</div></div></li>`).join("");
+    reasonsBox.classList.toggle("hidden", !res.reasons?.length);
+
     document.getElementById("stat-billed-amount").textContent = formatCurrency(res.billed_amount);
     document.getElementById("stat-predicted-cost").textContent = formatCurrency(res.model1_predicted_cost);
     document.getElementById("stat-predicted-range").textContent =
       res.model1_interval_lower != null ? `Likely range ${formatCurrency(res.model1_interval_lower)} to ${formatCurrency(res.model1_interval_upper)}` : "";
     const mm = Number(res.cost_mismatch || 0);
     const mmEl = document.getElementById("stat-cost-mismatch");
-    mmEl.textContent = (mm > 0 ? "+" : "") + formatCurrency(mm);
+    mmEl.textContent = (mm > 0 ? "+" : mm < 0 ? "−" : "") + formatCurrency(Math.abs(mm));
     mmEl.style.color = mm > 0 ? "var(--danger)" : "var(--success)";
     const pct = Number(res.model2_proba || 0) * 100;
     document.getElementById("stat-risk-proba").textContent = `${pct.toFixed(1)}%`;
@@ -513,7 +544,7 @@ const auditPage = {
       ["Carrier's past risk", c.vendor_historical_risk_score != null ? `${(c.vendor_historical_risk_score * 100).toFixed(1)}%` : "—"],
       ["Entered or changed by you", res.manually_entered_fields?.length ? res.manually_entered_fields.map(k => FIELD_META[k]?.label || k).join(", ") : "None"],
       ...(c.notes || []).map(n => ["Note", escapeHtml(n)]),
-      ["Read by", escapeHtml(res.extractor_model || res.extractor_used)],
+      ["Read by", escapeHtml(res.extractor_model || (res.extractor_used === "manual" ? "Entered by hand" : res.extractor_used))],
     ].filter(Boolean);
     const drivers = (res.cost_drivers || []).map(d =>
       `<li><span>${escapeHtml(d.feature.replace(/_/g, " "))}</span><span class="${d.feature !== "model_adjustment" ? "" : d.impact > 0 ? "neg" : "pos"}">${d.impact > 0 ? "+" : "−"}₹${Math.abs(d.impact).toLocaleString("en-IN", { maximumFractionDigits: 0 })}</span></li>`).join("");

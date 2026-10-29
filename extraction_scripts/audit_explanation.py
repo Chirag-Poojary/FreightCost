@@ -124,7 +124,7 @@ def explain_rules(rec):
 
     if drivers:
 
-        driver_strs = [f"{d['feature'].replace('_', ' ').title()} ({'+' if d['impact'] > 0 else ''}₹{d['impact']:,.0f})" for d in drivers]
+        driver_strs = [f"{d['feature'].replace('_', ' ').title()} ({'+' if d['impact'] > 0 else '−'}₹{abs(d['impact']):,.0f})" for d in drivers]
 
         lines.append(f"Top cost drivers: {', '.join(driver_strs)}.")
 

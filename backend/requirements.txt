@@ -11,3 +11,4 @@ scikit-learn==1.9.1
 pytesseract
 Pillow
 requests
+reportlab
